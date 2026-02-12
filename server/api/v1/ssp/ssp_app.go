@@ -1,0 +1,190 @@
+package ssp
+
+import (
+	
+	"github.com/flipped-aurora/gin-vue-admin/server/global"
+    "github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
+    "github.com/flipped-aurora/gin-vue-admin/server/model/ssp"
+    sspReq "github.com/flipped-aurora/gin-vue-admin/server/model/ssp/request"
+    "github.com/gin-gonic/gin"
+    "go.uber.org/zap"
+)
+
+type SspAppApi struct {}
+
+
+
+// CreateSspApp 创建媒体应用
+// @Tags SspApp
+// @Summary 创建媒体应用
+// @Security ApiKeyAuth
+// @Accept application/json
+// @Produce application/json
+// @Param data body ssp.SspApp true "创建媒体应用"
+// @Success 200 {object} response.Response{msg=string} "创建成功"
+// @Router /App/createSspApp [post]
+func (AppApi *SspAppApi) CreateSspApp(c *gin.Context) {
+    // 创建业务用Context
+    ctx := c.Request.Context()
+
+	var App ssp.SspApp
+	err := c.ShouldBindJSON(&App)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	err = AppService.CreateSspApp(ctx,&App)
+	if err != nil {
+        global.GVA_LOG.Error("创建失败!", zap.Error(err))
+		response.FailWithMessage("创建失败:" + err.Error(), c)
+		return
+	}
+    response.OkWithMessage("创建成功", c)
+}
+
+// DeleteSspApp 删除媒体应用
+// @Tags SspApp
+// @Summary 删除媒体应用
+// @Security ApiKeyAuth
+// @Accept application/json
+// @Produce application/json
+// @Param data body ssp.SspApp true "删除媒体应用"
+// @Success 200 {object} response.Response{msg=string} "删除成功"
+// @Router /App/deleteSspApp [delete]
+func (AppApi *SspAppApi) DeleteSspApp(c *gin.Context) {
+    // 创建业务用Context
+    ctx := c.Request.Context()
+
+	ID := c.Query("ID")
+	err := AppService.DeleteSspApp(ctx,ID)
+	if err != nil {
+        global.GVA_LOG.Error("删除失败!", zap.Error(err))
+		response.FailWithMessage("删除失败:" + err.Error(), c)
+		return
+	}
+	response.OkWithMessage("删除成功", c)
+}
+
+// DeleteSspAppByIds 批量删除媒体应用
+// @Tags SspApp
+// @Summary 批量删除媒体应用
+// @Security ApiKeyAuth
+// @Accept application/json
+// @Produce application/json
+// @Success 200 {object} response.Response{msg=string} "批量删除成功"
+// @Router /App/deleteSspAppByIds [delete]
+func (AppApi *SspAppApi) DeleteSspAppByIds(c *gin.Context) {
+    // 创建业务用Context
+    ctx := c.Request.Context()
+
+	IDs := c.QueryArray("IDs[]")
+	err := AppService.DeleteSspAppByIds(ctx,IDs)
+	if err != nil {
+        global.GVA_LOG.Error("批量删除失败!", zap.Error(err))
+		response.FailWithMessage("批量删除失败:" + err.Error(), c)
+		return
+	}
+	response.OkWithMessage("批量删除成功", c)
+}
+
+// UpdateSspApp 更新媒体应用
+// @Tags SspApp
+// @Summary 更新媒体应用
+// @Security ApiKeyAuth
+// @Accept application/json
+// @Produce application/json
+// @Param data body ssp.SspApp true "更新媒体应用"
+// @Success 200 {object} response.Response{msg=string} "更新成功"
+// @Router /App/updateSspApp [put]
+func (AppApi *SspAppApi) UpdateSspApp(c *gin.Context) {
+    // 从ctx获取标准context进行业务行为
+    ctx := c.Request.Context()
+
+	var App ssp.SspApp
+	err := c.ShouldBindJSON(&App)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	err = AppService.UpdateSspApp(ctx,App)
+	if err != nil {
+        global.GVA_LOG.Error("更新失败!", zap.Error(err))
+		response.FailWithMessage("更新失败:" + err.Error(), c)
+		return
+	}
+	response.OkWithMessage("更新成功", c)
+}
+
+// FindSspApp 用id查询媒体应用
+// @Tags SspApp
+// @Summary 用id查询媒体应用
+// @Security ApiKeyAuth
+// @Accept application/json
+// @Produce application/json
+// @Param ID query uint true "用id查询媒体应用"
+// @Success 200 {object} response.Response{data=ssp.SspApp,msg=string} "查询成功"
+// @Router /App/findSspApp [get]
+func (AppApi *SspAppApi) FindSspApp(c *gin.Context) {
+    // 创建业务用Context
+    ctx := c.Request.Context()
+
+	ID := c.Query("ID")
+	reApp, err := AppService.GetSspApp(ctx,ID)
+	if err != nil {
+        global.GVA_LOG.Error("查询失败!", zap.Error(err))
+		response.FailWithMessage("查询失败:" + err.Error(), c)
+		return
+	}
+	response.OkWithData(reApp, c)
+}
+// GetSspAppList 分页获取媒体应用列表
+// @Tags SspApp
+// @Summary 分页获取媒体应用列表
+// @Security ApiKeyAuth
+// @Accept application/json
+// @Produce application/json
+// @Param data query sspReq.SspAppSearch true "分页获取媒体应用列表"
+// @Success 200 {object} response.Response{data=response.PageResult,msg=string} "获取成功"
+// @Router /App/getSspAppList [get]
+func (AppApi *SspAppApi) GetSspAppList(c *gin.Context) {
+    // 创建业务用Context
+    ctx := c.Request.Context()
+
+	var pageInfo sspReq.SspAppSearch
+	err := c.ShouldBindQuery(&pageInfo)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	list, total, err := AppService.GetSspAppInfoList(ctx,pageInfo)
+	if err != nil {
+	    global.GVA_LOG.Error("获取失败!", zap.Error(err))
+        response.FailWithMessage("获取失败:" + err.Error(), c)
+        return
+    }
+    response.OkWithDetailed(response.PageResult{
+        List:     list,
+        Total:    total,
+        Page:     pageInfo.Page,
+        PageSize: pageInfo.PageSize,
+    }, "获取成功", c)
+}
+
+// GetSspAppPublic 不需要鉴权的媒体应用接口
+// @Tags SspApp
+// @Summary 不需要鉴权的媒体应用接口
+// @Accept application/json
+// @Produce application/json
+// @Success 200 {object} response.Response{data=object,msg=string} "获取成功"
+// @Router /App/getSspAppPublic [get]
+func (AppApi *SspAppApi) GetSspAppPublic(c *gin.Context) {
+    // 创建业务用Context
+    ctx := c.Request.Context()
+
+    // 此接口不需要鉴权
+    // 示例为返回了一个固定的消息接口，一般本接口用于C端服务，需要自己实现业务逻辑
+    AppService.GetSspAppPublic(ctx)
+    response.OkWithDetailed(gin.H{
+       "info": "不需要鉴权的媒体应用接口信息",
+    }, "获取成功", c)
+}
