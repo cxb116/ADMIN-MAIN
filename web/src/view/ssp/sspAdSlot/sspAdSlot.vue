@@ -80,20 +80,31 @@
         >
         <el-table-column type="selection" width="55" />
 
-        <el-table-column sortable align="left" label="日期" prop="CreatedAt" width="180">
-            <template #default="scope">{{ formatDate(scope.row.CreatedAt) }}</template>
-        </el-table-column>
+          <el-table-column
+              align="left"
+              label="广告位名称:(ID)"
+              width="250"
+          >
+            <template #default="{ row }">
+              {{ row.name }}（{{ row.ID }}）
+            </template>
+          </el-table-column>
 
-            <el-table-column align="left" label="媒体Id" prop="media_id" width="120" />
+          <el-table-column align="left" label="内部广告名称" prop="name_alise" width="150" />
 
-            <el-table-column align="left" label="应用id" prop="app_id" width="120" />
+            <el-table-column align="left" label="应用名称" prop="app_name" width="150" />
 
-            <el-table-column align="left" label="广告位名称" prop="name" width="120" />
+          <el-table-column
+              align="left"
+              label="操作系统"
+              width="120"
+          >
+            <template #default="{ row }">
+              {{ row.app_os_type === '1' ? 'Android' : row.app_os_type === '2' ? 'iOS' : '未知' }}
+            </template>
+          </el-table-column>
 
-            <el-table-column align="left" label="内部广告位名称" prop="name_alise" width="120" />
-
-            <el-table-column align="left" label="广告类型" prop="scene_id" width="120" />
-
+            <el-table-column align="left" label="广告类型" width="120" prop="scene_name" />
             <el-table-column align="left" label="结算方式" prop="ssp_pay_type" width="120">
     <template #default="scope">
     {{ filterDict(scope.row.ssp_pay_type,pay_typeOptions) }}
@@ -108,6 +119,10 @@
             <el-table-column align="left" label="广告位宽" prop="width" width="120" />
 
             <el-table-column align="left" label="广告位图片" prop="ad_image" width="120" />
+
+          <el-table-column sortable align="left" label="日12期" prop="CreatedAt" width="180">
+            <template #default="scope">{{ formatDate(scope.row.CreatedAt) }}</template>
+          </el-table-column>
 
             <el-table-column align="left" label="是否启用" prop="enable" width="120">
     <template #default="scope">
@@ -313,7 +328,7 @@
           <el-form :model="formData" label-position="top" ref="elFormRef" :rules="rule" label-width="80px">
             <el-row :gutter="20">
               <el-col :span="12">
-                <el-form-item label="媒体Id:" prop="media_id">
+                <el-form-item label="媒体名称:" prop="media_id">
                   <el-select
                       v-model="formData.media_id"
                       placeholder="请选择媒体"
@@ -332,7 +347,7 @@
               </el-col>
 
               <el-col :span="12">
-                <el-form-item label="应用id:" prop="app_id">
+                <el-form-item label="应用名称:" prop="app_id">
                   <el-select
                       v-model="formData.app_id"
                       placeholder="请选择应用"

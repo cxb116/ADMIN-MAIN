@@ -1,3 +1,8 @@
 package dsp
 
-type ServiceGroup struct{ DspAdSceneService }
+type ServiceGroup struct {
+	DspAdSceneService
+	DspCompanyService
+	DspProductService
+	DspSlotInfoService
+}

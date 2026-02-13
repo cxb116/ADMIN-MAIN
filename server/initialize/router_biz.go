@@ -16,11 +16,14 @@ func initBizRouter(routers ...*gin.RouterGroup) {
 	{
 		dspRouter := router.RouterGroupApp.Dsp
 		dspRouter.InitDspAdSceneRouter(privateGroup, publicGroup)
+		dspRouter.InitDspCompanyRouter(privateGroup, publicGroup)
+		dspRouter.InitDspProductRouter(privateGroup, publicGroup) // 占位方法，保证文件可以正确加载，避免go空变量检测报错，请勿删除。
+		dspRouter.InitDspSlotInfoRouter(privateGroup, publicGroup)
 	}
 	{
 		sspRouter := router.RouterGroupApp.Ssp
 		sspRouter.InitSspMediaRouter(privateGroup, publicGroup)
-		sspRouter.InitSspAppRouter(privateGroup, publicGroup) // 占位方法，保证文件可以正确加载，避免go空变量检测报错，请勿删除。
+		sspRouter.InitSspAppRouter(privateGroup, publicGroup)
 		sspRouter.InitSsp_ad_slotRouter(privateGroup, publicGroup)
 	}
 }
