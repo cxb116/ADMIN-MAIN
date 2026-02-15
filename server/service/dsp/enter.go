@@ -5,4 +5,5 @@ type ServiceGroup struct {
 	DspCompanyService
 	DspProductService
 	DspSlotInfoService
+	DspLaunchService
 }

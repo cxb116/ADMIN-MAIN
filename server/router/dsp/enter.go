@@ -7,6 +7,7 @@ type RouterGroup struct {
 	DspCompanyRouter
 	DspProductRouter
 	DspSlotInfoRouter
+	DspLaunchRouter
 }
 
 var (
@@ -14,4 +15,5 @@ var (
 	dspCompanyApi  = api.ApiGroupApp.DspApiGroup.DspCompanyApi
 	dProductApi    = api.ApiGroupApp.DspApiGroup.DspProductApi
 	dspSlotInfoApi = api.ApiGroupApp.DspApiGroup.DspSlotInfoApi
+	dspLaunchApi   = api.ApiGroupApp.DspApiGroup.DspLaunchApi
 )
