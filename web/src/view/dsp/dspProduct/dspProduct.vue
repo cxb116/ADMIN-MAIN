@@ -28,7 +28,14 @@
 </el-form-item>
             
             <el-form-item label="公司" prop="dsp_company_id">
-  <el-input v-model.number="searchInfo.dsp_company_id" placeholder="搜索条件" />
+  <el-select v-model="searchInfo.dsp_company_id" placeholder="请选择公司" :clearable="true" filterable>
+    <el-option
+      v-for="item in companyOptions"
+      :key="item.value"
+      :label="item.label"
+      :value="item.value">
+    </el-option>
+  </el-select>
 </el-form-item>
             
 
@@ -66,7 +73,11 @@
         
             <el-table-column align="left" label="产品名称" prop="name" width="120" />
 
-            <el-table-column align="left" label="公司" prop="dsp_company_id" width="120" />
+            <el-table-column align="left" label="公司" prop="dsp_company_id" width="120">
+    <template #default="scope">
+    {{ filterDict(scope.row.dsp_company_id, companyOptions) }}
+    </template>
+</el-table-column>
 
         <el-table-column align="left" label="操作" fixed="right" :min-width="appStore.operateMinWith">
             <template #default="scope">
@@ -104,7 +115,14 @@
     <el-input v-model="formData.name" :clearable="true" placeholder="请输入产品名称" />
 </el-form-item>
             <el-form-item label="公司:" prop="dsp_company_id">
-    <el-input v-model.number="formData.dsp_company_id" :clearable="true" placeholder="请输入公司" />
+    <el-select v-model="formData.dsp_company_id" placeholder="请选择公司" :clearable="true" filterable style="width: 100%">
+      <el-option
+        v-for="item in companyOptions"
+        :key="item.value"
+        :label="item.label"
+        :value="item.value">
+      </el-option>
+    </el-select>
 </el-form-item>
           </el-form>
     </el-drawer>
@@ -115,7 +133,7 @@
     {{ detailForm.name }}
 </el-descriptions-item>
                     <el-descriptions-item label="公司">
-    {{ detailForm.dsp_company_id }}
+    {{ filterDict(detailForm.dsp_company_id, companyOptions) }}
 </el-descriptions-item>
             </el-descriptions>
         </el-drawer>
@@ -132,6 +150,7 @@ import {
   findDspProduct,
   getDspProductList
 } from '@/api/dsp/dspProduct'
+import { getDictionaryTreeListByType } from '@/api/dsp/dspCompany'
 
 // 全量引入格式化工具 请按需保留
 import { getDictFunc, formatDate, formatBoolean, filterDict ,filterDataSource, returnArrImg, onDownloadFile } from '@/utils/format'
@@ -152,6 +171,9 @@ const appStore = useAppStore()
 
 // 控制更多查询条件显示/隐藏状态
 const showAllQuery = ref(false)
+
+// 公司选项数据字典
+const companyOptions = ref([])
 
 // 自动化生成的字典（可能为空）以及字段
 const formData = ref({
@@ -235,6 +257,11 @@ getTableData()
 
 // 获取需要的字典 可能为空 按需保留
 const setOptions = async () =>{
+    // 获取公司数据字典
+    const res = await getDictionaryTreeListByType()
+    if (res.code === 0) {
+        companyOptions.value = res.data.list
+    }
 }
 
 // 获取需要的字典 可能为空 按需保留
