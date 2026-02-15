@@ -120,7 +120,7 @@
 
             <el-table-column align="left" label="广告位图片" prop="ad_image" width="120" />
 
-          <el-table-column sortable align="left" label="日12期" prop="CreatedAt" width="180">
+          <el-table-column sortable align="left" label="日期" prop="CreatedAt" width="180">
             <template #default="scope">{{ formatDate(scope.row.CreatedAt) }}</template>
           </el-table-column>
 
