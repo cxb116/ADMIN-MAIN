@@ -24,7 +24,14 @@
        </el-form-item>
       
             <el-form-item label="广告类型" prop="scene_id">
-  <el-input v-model.number="searchInfo.scene_id" placeholder="搜索条件" />
+  <el-select v-model="searchInfo.scene_id" placeholder="请选择广告类型" :clearable="true" style="width: 100%">
+    <el-option
+      v-for="item in sceneOptions.list"
+      :key="item.value"
+      :label="item.label"
+      :value="item.value"
+    />
+  </el-select>
 </el-form-item>
             
             <el-form-item label="预算方广告位" prop="dsp_slot_code">
@@ -67,7 +74,7 @@
         
             <el-table-column align="left" label="预算位名称" prop="name" width="120" />
 
-            <el-table-column align="left" label="广告类型" prop="scene_id" width="120" />
+            <el-table-column align="left" label="广告类型" prop="scene_name" width="120" />
 
             <el-table-column align="left" label="预算方广告位" prop="dsp_slot_code" width="120" />
 
@@ -145,7 +152,14 @@
     <el-input v-model="formData.name" :clearable="true" placeholder="请输入预算位名称" />
 </el-form-item>
             <el-form-item label="广告类型:" prop="scene_id">
-    <el-input v-model.number="formData.scene_id" :clearable="true" placeholder="请输入广告类型" />
+    <el-select v-model="formData.scene_id" placeholder="请选择广告类型" :clearable="true" style="width: 100%">
+      <el-option
+        v-for="item in sceneOptions.list"
+        :key="item.value"
+        :label="item.label"
+        :value="item.value"
+      />
+    </el-select>
 </el-form-item>
             <el-form-item label="预算方广告位:" prop="dsp_slot_code">
     <el-input v-model="formData.dsp_slot_code" :clearable="true" placeholder="请输入预算方广告位" />
@@ -206,7 +220,7 @@
     {{ detailForm.name }}
 </el-descriptions-item>
                     <el-descriptions-item label="广告类型">
-    {{ detailForm.scene_id }}
+    {{ sceneMap.value[String(detailForm.scene_id)] || detailForm.scene_id }}
 </el-descriptions-item>
                     <el-descriptions-item label="预算方广告位">
     {{ detailForm.dsp_slot_code }}
@@ -265,6 +279,9 @@ import {
 import {
   Cascader
 } from '@/api/dsp/dspProduct'
+import {
+  getDictionaryTreeListByType
+} from '@/api/dsp/dspAdScene'
 // 富文本组件
 import RichEdit from '@/components/richtext/rich-edit.vue'
 import RichView from '@/components/richtext/rich-view.vue'
@@ -291,6 +308,7 @@ const showAllQuery = ref(false)
 
 // 自动化生成的字典（可能为空）以及字段
 const pay_typeOptions = ref([])
+const sceneOptions = ref([])
 const formData = ref({
             name: '',
             scene_id: undefined,
@@ -312,6 +330,17 @@ const formData = ref({
 
 // 级联选择器选项数据
 const cascaderOptions = ref([])
+
+// 创建场景ID到名称的映射
+const sceneMap = computed(() => {
+  const map = {}
+  if (sceneOptions.value && sceneOptions.value.list) {
+    sceneOptions.value.list.forEach(scene => {
+      map[String(scene.value)] = scene.label
+    })
+  }
+  return map
+})
 
 // 创建公司ID到名称的映射
 const companyMap = computed(() => {
@@ -355,8 +384,8 @@ const rule = reactive({
               ],
                scene_id : [{
                    required: true,
-                   message: '',
-                   trigger: ['input','blur'],
+                   message: '请选择广告类型',
+                   trigger: ['change','blur'],
                },
               ],
                dsp_slot_code : [{
@@ -424,13 +453,19 @@ const handleCurrentChange = (val) => {
 const setOptions = async () =>{
     pay_typeOptions.value = await getDictFunc('pay_type')
 
+    // 获取广告场景数据
+    const sceneRes = await getDictionaryTreeListByType()
+    if (sceneRes.code === 0) {
+        sceneOptions.value = sceneRes.data
+    }
+
     // 获取级联选择器数据
     const cascaderRes = await Cascader()
     if (cascaderRes.code === 0) {
         cascaderOptions.value = cascaderRes.data
     }
 
-    // 级联选择器数据加载完成后，再加载表格数据
+    // 数据加载完成后，再加载表格数据
     await getTableData()
 
     // 强制触发更新
@@ -445,13 +480,14 @@ const setOptions = async () =>{
 const getTableData = async() => {
   const table = await getDspSlotInfoList({ page: page.value, pageSize: pageSize.value, ...searchInfo.value })
   if (table.code === 0) {
-    // 为每条数据添加公司名称和产品名称
+    // 为每条数据添加场景名称、公司名称和产品名称
     tableData.value = table.data.list.map(row => {
       const company = cascaderOptions.value.find(c => c.value === String(row.dsp_company_id))
       const product = company?.children?.find(p => p.value === String(row.dsp_product_id))
 
       return {
         ...row,
+        scene_name: sceneMap.value[String(row.scene_id)] || row.scene_id,
         company_name: company?.label || row.dsp_company_id,
         product_name: product?.label || row.dsp_product_id
       }

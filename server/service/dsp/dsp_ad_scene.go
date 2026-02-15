@@ -75,3 +75,13 @@ func (adSceneService *DspAdSceneService)GetDspAdScenePublic(ctx context.Context)
     // 此方法为获取数据源定义的数据
     // 请自行实现
 }
+
+// GetDictionaryTreeListByType 参考数据字典协议，查询广告场景
+// Author [yourname](https://github.com/yourname)
+func (adSceneService *DspAdSceneService)GetDictionaryTreeListByType(ctx context.Context) (list []dsp.DspAdScene, err error) {
+	// 查询所有启用的广告场景数据
+	err = global.GVA_DB.Model(&dsp.DspAdScene{}).Where("enable = ?", "1").Find(&list).Error
+	return list, err
+}
+
+

@@ -15,3 +15,14 @@ var (
 	dProductService    = service.ServiceGroupApp.DspServiceGroup.DspProductService
 	dspSlotInfoService = service.ServiceGroupApp.DspServiceGroup.DspSlotInfoService
 )
+
+// DictionaryItem 数据字典项
+type DictionaryItem struct {
+	Label string `json:"label"`
+	Value int64  `json:"value"`
+}
+
+// DictionaryResponse 数据字典响应
+type DictionaryResponse struct {
+	List []DictionaryItem `json:"list"`
+}
