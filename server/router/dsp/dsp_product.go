@@ -24,5 +24,6 @@ func (s *DspProductRouter) InitDspProductRouter(Router *gin.RouterGroup, PublicR
 	}
 	{
 		dProductRouterWithoutAuth.GET("getDspProductPublic", dProductApi.GetDspProductPublic)
+		dProductRouterWithoutAuth.GET("Cascader", dProductApi.Cascader)
 	}
 }

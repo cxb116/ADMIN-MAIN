@@ -124,3 +124,16 @@ export const getDictionaryTreeListByType = (params) => {
     params
   })
 }
+// Cascader 根据公司选择产品，第一级是公司，第二级是产品
+// @Tags DspProduct
+// @Summary 根据公司选择产品，第一级是公司，第二级是产品
+// @Accept application/json
+// @Produce application/json
+// @Success 200 {object} response.Response{data=object,msg=string} "成功"
+// @Router /dProduct/Cascader [GET]
+export const Cascader = () => {
+  return service({
+    url: '/dProduct/Cascader',
+    method: 'GET'
+  })
+}

@@ -11,6 +11,13 @@ import (
 
 type DspProductApi struct{}
 
+// CascaderItem 级联选择器项
+type CascaderItem struct {
+	Value    interface{}    `json:"value"`
+	Label    string         `json:"label"`
+	Children []CascaderItem `json:"children,omitempty"`
+}
+
 
 
 // CreateDspProduct 创建预算产品
@@ -223,6 +230,29 @@ func (dProductApi *DspProductApi) GetDictionaryTreeListByType(c *gin.Context) {
 	response.OkWithDetailed(DictionaryResponse{
 		List: dictionaryList,
 	}, "获取成功", c)
+}
+
+
+// Cascader 根据公司选择产品，第一级是公司，第二级是产品
+// @Tags DspProduct
+// @Summary 根据公司选择产品，第一级是公司，第二级是产品
+// @Accept application/json
+// @Produce application/json
+// @Success 200 {object} response.Response{data=[]CascaderItem,msg=string} "成功"
+// @Router /dProduct/Cascader [GET]
+func (dProductApi *DspProductApi) Cascader(c *gin.Context) {
+	// 创建业务用Context
+	ctx := c.Request.Context()
+
+	var result []map[string]interface{}
+	err := dProductService.Cascader(ctx, &result)
+	if err != nil {
+		global.GVA_LOG.Error("获取级联数据失败!", zap.Error(err))
+		response.FailWithMessage("获取失败", c)
+		return
+	}
+
+	response.OkWithData(result, c)
 }
 
 
