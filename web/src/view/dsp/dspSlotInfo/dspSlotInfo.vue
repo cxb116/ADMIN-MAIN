@@ -55,6 +55,7 @@
         style="width: 100%"
         tooltip-effect="dark"
         :data="tableData"
+        :key="cascaderOptions.length"
         row-key="ID"
         @selection-change="handleSelectionChange"
         >
@@ -91,9 +92,17 @@
 </el-table-column>
             <el-table-column align="left" label="成交价系数" prop="dsp_deal_ratio" width="120" />
 
-            <el-table-column align="left" label="公司id" prop="dsp_company_id" width="120" />
+            <el-table-column align="left" label="公司" prop="company_name" width="120">
+    <template #default="scope">
+    {{ scope.row.company_name || scope.row.dsp_company_id }}
+    </template>
+</el-table-column>
 
-            <el-table-column align="left" label="产品id" prop="dsp_product_id" width="120" />
+            <el-table-column align="left" label="产品" prop="product_name" width="120">
+    <template #default="scope">
+    {{ scope.row.product_name || scope.row.dsp_product_id }}
+    </template>
+</el-table-column>
 
             <el-table-column label="备注" prop="remark" width="200">
    <template #default="scope">
@@ -168,11 +177,22 @@
             <el-form-item label="成交价系数:" prop="dsp_deal_ratio">
     <el-input v-model.number="formData.dsp_deal_ratio" :clearable="true" placeholder="请输入成交价系数" />
 </el-form-item>
-            <el-form-item label="公司id:" prop="dsp_company_id">
-    <el-input v-model.number="formData.dsp_company_id" :clearable="true" placeholder="请输入公司id" />
-</el-form-item>
-            <el-form-item label="产品id:" prop="dsp_product_id">
-    <el-input v-model.number="formData.dsp_product_id" :clearable="true" placeholder="请输入产品id" />
+            <el-form-item label="公司产品:" prop="cascaderValue">
+    <el-cascader
+      v-model="formData.cascaderValue"
+      :options="cascaderOptions"
+      :props="{
+        expandTrigger: 'hover',
+        emitPath: true,
+        value: 'value',
+        label: 'label',
+        children: 'children'
+      }"
+      placeholder="请选择公司产品"
+      style="width: 100%"
+      clearable
+      filterable
+    />
 </el-form-item>
             <el-form-item label="备注:" prop="remark">
     <RichEdit v-model="formData.remark"/>
@@ -242,6 +262,9 @@ import {
   findDspSlotInfo,
   getDspSlotInfoList
 } from '@/api/dsp/dspSlotInfo'
+import {
+  Cascader
+} from '@/api/dsp/dspProduct'
 // 富文本组件
 import RichEdit from '@/components/richtext/rich-edit.vue'
 import RichView from '@/components/richtext/rich-view.vue'
@@ -249,7 +272,7 @@ import RichView from '@/components/richtext/rich-view.vue'
 // 全量引入格式化工具 请按需保留
 import { getDictFunc, formatDate, formatBoolean, filterDict ,filterDataSource, returnArrImg, onDownloadFile } from '@/utils/format'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch, computed } from 'vue'
 import { useAppStore } from "@/pinia"
 
 
@@ -283,10 +306,39 @@ const formData = ref({
             dsp_deal_ratio: undefined,
             dsp_company_id: undefined,
             dsp_product_id: undefined,
+            cascaderValue: [],
             remark: '',
         })
 
+// 级联选择器选项数据
+const cascaderOptions = ref([])
 
+// 创建公司ID到名称的映射
+const companyMap = computed(() => {
+  const map = {}
+  if (cascaderOptions.value) {
+    cascaderOptions.value.forEach(company => {
+      map[String(company.value)] = company.label
+    })
+  }
+  return map
+})
+
+// 创建产品ID到名称的映射（需要公司ID）
+const productMap = computed(() => {
+  const map = {}
+  if (cascaderOptions.value) {
+    cascaderOptions.value.forEach(company => {
+      if (company.children) {
+        company.children.forEach(product => {
+          // 使用 companyId_productId 作为复合键
+          map[`${company.value}_${product.value}`] = product.label
+        })
+      }
+    })
+  }
+  return map
+})
 
 // 验证规则
 const rule = reactive({
@@ -318,16 +370,14 @@ const rule = reactive({
                    trigger: ['input', 'blur'],
               }
               ],
-               dsp_company_id : [{
-                   required: true,
-                   message: '',
-                   trigger: ['input','blur'],
-               },
-              ],
-               dsp_product_id : [{
-                   required: true,
-                   message: '',
-                   trigger: ['input','blur'],
+               cascaderValue : [{
+                   validator: (rule, value, callback) => {
+                     if (!value || value.length !== 2) {
+                       callback(new Error('请选择公司产品'))
+                     } else {
+                       callback()
+                     }
+                   }
                },
               ],
 })
@@ -368,29 +418,52 @@ const handleCurrentChange = (val) => {
   getTableData()
 }
 
+// ============== 表格控制部分结束 ===============
+
+// 获取需要的字典 可为空 按需保留
+const setOptions = async () =>{
+    pay_typeOptions.value = await getDictFunc('pay_type')
+
+    // 获取级联选择器数据
+    const cascaderRes = await Cascader()
+    if (cascaderRes.code === 0) {
+        cascaderOptions.value = cascaderRes.data
+    }
+
+    // 级联选择器数据加载完成后，再加载表格数据
+    await getTableData()
+
+    // 强制触发更新
+    await new Promise(resolve => setTimeout(resolve, 100))
+    if (tableData.value.length > 0) {
+        // 触发响应式更新
+        tableData.value = [...tableData.value]
+    }
+}
+
 // 查询
 const getTableData = async() => {
   const table = await getDspSlotInfoList({ page: page.value, pageSize: pageSize.value, ...searchInfo.value })
   if (table.code === 0) {
-    tableData.value = table.data.list
+    // 为每条数据添加公司名称和产品名称
+    tableData.value = table.data.list.map(row => {
+      const company = cascaderOptions.value.find(c => c.value === String(row.dsp_company_id))
+      const product = company?.children?.find(p => p.value === String(row.dsp_product_id))
+
+      return {
+        ...row,
+        company_name: company?.label || row.dsp_company_id,
+        product_name: product?.label || row.dsp_product_id
+      }
+    })
     total.value = table.data.total
     page.value = table.data.page
     pageSize.value = table.data.pageSize
   }
 }
 
-getTableData()
-
-// ============== 表格控制部分结束 ===============
-
-// 获取需要的字典 可能为空 按需保留
-const setOptions = async () =>{
-    pay_typeOptions.value = await getDictFunc('pay_type')
-}
-
-// 获取需要的字典 可能为空 按需保留
+// 初始化：先加载选项数据，再加载表格
 setOptions()
-
 
 // 多选数据
 const multipleSelection = ref([])
@@ -452,6 +525,13 @@ const updateDspSlotInfoFunc = async(row) => {
     type.value = 'update'
     if (res.code === 0) {
         formData.value = res.data
+        // 编辑模式：将后端返回的 company_id 和 product_id 转换为级联选择器格式
+        if (res.data.dsp_company_id && res.data.dsp_product_id) {
+          formData.value.cascaderValue = [
+            String(res.data.dsp_company_id),
+            String(res.data.dsp_product_id)
+          ]
+        }
         dialogFormVisible.value = true
     }
 }
@@ -499,6 +579,7 @@ const closeDialog = () => {
         dsp_deal_ratio: undefined,
         dsp_company_id: undefined,
         dsp_product_id: undefined,
+        cascaderValue: [],
         remark: '',
         }
 }
@@ -507,6 +588,13 @@ const enterDialog = async () => {
      btnLoading.value = true
      elFormRef.value?.validate( async (valid) => {
              if (!valid) return btnLoading.value = false
+
+             // 将级联选择器的值转换为后端需要的格式
+             if (formData.value.cascaderValue && formData.value.cascaderValue.length === 2) {
+               formData.value.dsp_company_id = Number(formData.value.cascaderValue[0])
+               formData.value.dsp_product_id = Number(formData.value.cascaderValue[1])
+             }
+
               let res
               switch (type.value) {
                 case 'create':
@@ -558,6 +646,19 @@ const getDetails = async (row) => {
 const closeDetailShow = () => {
   detailShow.value = false
   detailForm.value = {}
+}
+
+// 获取公司名称
+const getCompanyName = (companyId) => {
+  if (!companyId) return ''
+  return companyMap.value[String(companyId)] || companyId
+}
+
+// 获取产品名称
+const getProductName = (companyId, productId) => {
+  if (!companyId || !productId) return productId || ''
+  const key = `${String(companyId)}_${String(productId)}`
+  return productMap.value[key] || productId
 }
 
 

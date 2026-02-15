@@ -39,11 +39,16 @@
         <el-form-item label="成交价系数:" prop="dsp_deal_ratio">
     <el-input v-model.number="formData.dsp_deal_ratio" :clearable="true" placeholder="请输入成交价系数" />
 </el-form-item>
-        <el-form-item label="公司id:" prop="dsp_company_id">
-    <el-input v-model.number="formData.dsp_company_id" :clearable="true" placeholder="请输入公司id" />
-</el-form-item>
-        <el-form-item label="产品id:" prop="dsp_product_id">
-    <el-input v-model.number="formData.dsp_product_id" :clearable="true" placeholder="请输入产品id" />
+        <el-form-item label="公司产品:" prop="cascaderValue">
+    <el-cascader
+      v-model="cascaderValue"
+      :options="cascaderOptions"
+      :props="{ expandTrigger: 'hover' }"
+      placeholder="请选择公司产品"
+      style="width: 100%"
+      clearable
+      filterable
+    />
 </el-form-item>
         <el-form-item label="备注:" prop="remark">
     <RichEdit v-model="formData.remark"/>
@@ -63,6 +68,9 @@ import {
   updateDspSlotInfo,
   findDspSlotInfo
 } from '@/api/dsp/dspSlotInfo'
+import {
+  Cascader
+} from '@/api/dsp/dspProduct'
 
 defineOptions({
     name: 'DspSlotInfoForm'
@@ -85,6 +93,8 @@ const btnLoading = ref(false)
 
 const type = ref('')
 const pay_typeOptions = ref([])
+const cascaderOptions = ref([])
+const cascaderValue = ref([])
 const formData = ref({
             name: '',
             scene_id: undefined,
@@ -119,15 +129,10 @@ const rule = reactive({
                    message: '',
                    trigger: ['input','blur'],
                }],
-               dsp_company_id : [{
+               cascaderValue : [{
                    required: true,
-                   message: '',
-                   trigger: ['input','blur'],
-               }],
-               dsp_product_id : [{
-                   required: true,
-                   message: '',
-                   trigger: ['input','blur'],
+                   message: '请选择公司产品',
+                   trigger: ['change','blur'],
                }],
 })
 
@@ -136,10 +141,23 @@ const elFormRef = ref()
 // 初始化方法
 const init = async () => {
  // 建议通过url传参获取目标数据ID 调用 find方法进行查询数据操作 从而决定本页面是create还是update 以下为id作为url参数示例
+    // 获取级联选择器数据
+    const cascaderRes = await Cascader()
+    if (cascaderRes.code === 0) {
+      cascaderOptions.value = cascaderRes.data
+    }
+
     if (route.query.id) {
       const res = await findDspSlotInfo({ ID: route.query.id })
       if (res.code === 0) {
         formData.value = res.data
+        // 编辑模式：将后端返回的 company_id 和 product_id 转换为级联选择器格式
+        if (res.data.dsp_company_id && res.data.dsp_product_id) {
+          cascaderValue.value = [
+            String(res.data.dsp_company_id),
+            String(res.data.dsp_product_id)
+          ]
+        }
         type.value = 'update'
       }
     } else {
@@ -154,6 +172,13 @@ const save = async() => {
       btnLoading.value = true
       elFormRef.value?.validate( async (valid) => {
          if (!valid) return btnLoading.value = false
+
+         // 将级联选择器的值转换为后端需要的格式
+         if (cascaderValue.value && cascaderValue.value.length === 2) {
+           formData.value.dsp_company_id = Number(cascaderValue.value[0])
+           formData.value.dsp_product_id = Number(cascaderValue.value[1])
+         }
+
             let res
            switch (type.value) {
              case 'create':
@@ -185,3 +210,4 @@ const back = () => {
 
 <style>
 </style>
+ 
