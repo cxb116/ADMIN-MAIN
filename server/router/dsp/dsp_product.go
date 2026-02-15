@@ -5,24 +5,24 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type DspProductRouter struct {}
+type DspProductRouter struct{}
 
-// InitDspProductRouter 初始化 预算产品 路由信息
-func (s *DspProductRouter) InitDspProductRouter(Router *gin.RouterGroup,PublicRouter *gin.RouterGroup) {
+func (s *DspProductRouter) InitDspProductRouter(Router *gin.RouterGroup, PublicRouter *gin.RouterGroup) {
 	dProductRouter := Router.Group("dProduct").Use(middleware.OperationRecord())
 	dProductRouterWithoutRecord := Router.Group("dProduct")
 	dProductRouterWithoutAuth := PublicRouter.Group("dProduct")
 	{
-		dProductRouter.POST("createDspProduct", dProductApi.CreateDspProduct)   // 新建预算产品
-		dProductRouter.DELETE("deleteDspProduct", dProductApi.DeleteDspProduct) // 删除预算产品
-		dProductRouter.DELETE("deleteDspProductByIds", dProductApi.DeleteDspProductByIds) // 批量删除预算产品
-		dProductRouter.PUT("updateDspProduct", dProductApi.UpdateDspProduct)    // 更新预算产品
+		dProductRouter.POST("createDspProduct", dProductApi.CreateDspProduct)
+		dProductRouter.DELETE("deleteDspProduct", dProductApi.DeleteDspProduct)
+		dProductRouter.DELETE("deleteDspProductByIds", dProductApi.DeleteDspProductByIds)
+		dProductRouter.PUT("updateDspProduct", dProductApi.UpdateDspProduct)
+		dProductRouter.GET("getDictionaryTreeListByType", dProductApi.GetDictionaryTreeListByType)
 	}
 	{
-		dProductRouterWithoutRecord.GET("findDspProduct", dProductApi.FindDspProduct)        // 根据ID获取预算产品
-		dProductRouterWithoutRecord.GET("getDspProductList", dProductApi.GetDspProductList)  // 获取预算产品列表
+		dProductRouterWithoutRecord.GET("findDspProduct", dProductApi.FindDspProduct)
+		dProductRouterWithoutRecord.GET("getDspProductList", dProductApi.GetDspProductList)
 	}
 	{
-	    dProductRouterWithoutAuth.GET("getDspProductPublic", dProductApi.GetDspProductPublic)  // 预算产品开放接口
+		dProductRouterWithoutAuth.GET("getDspProductPublic", dProductApi.GetDspProductPublic)
 	}
 }

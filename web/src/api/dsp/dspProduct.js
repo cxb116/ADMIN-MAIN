@@ -108,3 +108,19 @@ export const getDspProductPublic = () => {
     method: 'get',
   })
 }
+// GetDictionaryTreeListByType 参考数据字典协议，查询产品
+// @Tags DspProduct
+// @Summary 参考数据字典协议，查询产品
+// @Description 当没有传递 dsp_company_id 时，查询所有公司的产品；当传递了 dsp_company_id 时，只查询指定公司的产品
+// @Accept application/json
+// @Produce application/json
+// @Param dsp_company_id query string false "公司ID（可选）"
+// @Success 200 {object} response.Response{data=object,msg=string} "获取成功"
+// @Router /dProduct/getDictionaryTreeListByType [get]
+export const getDictionaryTreeListByType = (params) => {
+  return service({
+    url: '/dProduct/getDictionaryTreeListByType',
+    method: 'get',
+    params
+  })
+}

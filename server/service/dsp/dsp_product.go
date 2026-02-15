@@ -78,3 +78,20 @@ func (dProductService *DspProductService)GetDspProductPublic(ctx context.Context
     // 此方法为获取数据源定义的数据
     // 请自行实现
 }
+
+// GetDictionaryTreeListByType 参考数据字典协议，查询产品
+// 当 dspCompanyId 为空时，查询所有公司的产品；当指定 dspCompanyId 时，只查询该公司的产品
+// Author [yourname](https://github.com/yourname)
+func (dProductService *DspProductService) GetDictionaryTreeListByType(ctx context.Context, dspCompanyId *string) (list []dsp.DspProduct, err error) {
+	db := global.GVA_DB.Model(&dsp.DspProduct{})
+
+	// 如果指定了公司ID，则添加过滤条件
+	if dspCompanyId != nil && *dspCompanyId != "" {
+		db = db.Where("dsp_company_id = ?", *dspCompanyId)
+	}
+
+	err = db.Find(&list).Error
+	return list, err
+}
+
+
