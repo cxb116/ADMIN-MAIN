@@ -1,8 +1,6 @@
 package dsp
 
 import (
-	"fmt"
-
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
     "github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
     "github.com/flipped-aurora/gin-vue-admin/server/model/dsp"
@@ -16,7 +14,7 @@ type DspCompanyApi struct {}
 // DictionaryItem 数据字典项
 type DictionaryItem struct {
 	Label string `json:"label"`
-	Value string `json:"value"`
+	Value int64  `json:"value"`
 }
 
 // DictionaryResponse 数据字典响应
@@ -224,7 +222,7 @@ func (dspCompanyApi *DspCompanyApi)GetDictionaryTreeListByType(c *gin.Context) {
     for _, item := range list {
     	dictionaryList = append(dictionaryList, DictionaryItem{
     		Label: *item.Name,
-    		Value: fmt.Sprintf("%d", item.ID),
+    		Value: int64(item.ID),
     	})
     }
 
