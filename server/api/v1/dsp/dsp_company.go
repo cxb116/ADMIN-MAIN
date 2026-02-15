@@ -1,7 +1,8 @@
 package dsp
 
 import (
-	
+	"fmt"
+
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
     "github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
     "github.com/flipped-aurora/gin-vue-admin/server/model/dsp"
@@ -11,6 +12,17 @@ import (
 )
 
 type DspCompanyApi struct {}
+
+// DictionaryItem 数据字典项
+type DictionaryItem struct {
+	Label string `json:"label"`
+	Value string `json:"value"`
+}
+
+// DictionaryResponse 数据字典响应
+type DictionaryResponse struct {
+	List []DictionaryItem `json:"list"`
+}
 
 
 
@@ -188,3 +200,37 @@ func (dspCompanyApi *DspCompanyApi) GetDspCompanyPublic(c *gin.Context) {
        "info": "不需要鉴权的公司管理接口信息",
     }, "获取成功", c)
 }
+// GetDictionaryTreeListByType 参考数据字典协议，查询业务类
+// @Tags DspCompany
+// @Summary 参考数据字典协议，查询业务类
+// @Accept application/json
+// @Produce application/json
+// @Success 200 {object} response.Response{data=DictionaryResponse,msg=string} "成功"
+// @Router /dspCompany/getDictionaryTreeListByType [GET]
+func (dspCompanyApi *DspCompanyApi)GetDictionaryTreeListByType(c *gin.Context) {
+    // 创建业务用Context
+    ctx := c.Request.Context()
+
+    // 查询公司数据
+    list, err := dspCompanyService.GetDictionaryTreeListByType(ctx)
+    if err != nil {
+        global.GVA_LOG.Error("获取公司列表失败!", zap.Error(err))
+   		response.FailWithMessage("获取失败", c)
+   		return
+   	}
+
+    // 转换为数据字典格式
+    var dictionaryList []DictionaryItem
+    for _, item := range list {
+    	dictionaryList = append(dictionaryList, DictionaryItem{
+    		Label: *item.Name,
+    		Value: fmt.Sprintf("%d", item.ID),
+    	})
+    }
+
+    response.OkWithDetailed(DictionaryResponse{
+    	List: dictionaryList,
+    }, "获取成功", c)
+}
+
+
