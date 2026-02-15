@@ -108,3 +108,16 @@ export const getDspCompanyPublic = () => {
     method: 'get',
   })
 }
+// GetDictionaryTreeListByType 参考数据字典协议，查询业务类
+// @Tags DspCompany
+// @Summary 参考数据字典协议，查询业务类
+// @Accept application/json
+// @Produce application/json
+// @Success 200 {object} response.Response{data=object,msg=string} "成功"
+// @Router /dspCompany/getDictionaryTreeListByType [GET]
+export const getDictionaryTreeListByType = () => {
+  return service({
+    url: '/dspCompany/getDictionaryTreeListByType',
+    method: 'GET'
+  })
+}

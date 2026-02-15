@@ -1,16 +1,22 @@
 package dsp
 
 import (
-	
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
-    "github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
-    "github.com/flipped-aurora/gin-vue-admin/server/model/dsp"
-    dspReq "github.com/flipped-aurora/gin-vue-admin/server/model/dsp/request"
-    "github.com/gin-gonic/gin"
-    "go.uber.org/zap"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/dsp"
+	dspReq "github.com/flipped-aurora/gin-vue-admin/server/model/dsp/request"
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
-type DspProductApi struct {}
+type DspProductApi struct{}
+
+// CascaderItem 级联选择器项
+type CascaderItem struct {
+	Value    interface{}    `json:"value"`
+	Label    string         `json:"label"`
+	Children []CascaderItem `json:"children,omitempty"`
+}
 
 
 
@@ -188,3 +194,65 @@ func (dProductApi *DspProductApi) GetDspProductPublic(c *gin.Context) {
        "info": "不需要鉴权的预算产品接口信息",
     }, "获取成功", c)
 }
+// GetDictionaryTreeListByType 参考数据字典协议，查询产品
+// @Tags DspProduct
+// @Summary 参考数据字典协议，查询产品
+// @Description 当没有传递 dsp_company_id 时，查询所有公司的产品；当传递了 dsp_company_id 时，只查询指定公司的产品
+// @Accept application/json
+// @Produce application/json
+// @Param dsp_company_id query string false "公司ID（可选）"
+// @Success 200 {object} response.Response{data=DictionaryResponse,msg=string} "获取成功"
+// @Router /dProduct/getDictionaryTreeListByType [get]
+func (dProductApi *DspProductApi) GetDictionaryTreeListByType(c *gin.Context) {
+	// 创建业务用Context
+	ctx := c.Request.Context()
+
+	// 获取可选的公司ID参数
+	dspCompanyId := c.Query("dsp_company_id")
+
+	// 查询产品数据
+	list, err := dProductService.GetDictionaryTreeListByType(ctx, &dspCompanyId)
+	if err != nil {
+		global.GVA_LOG.Error("获取产品列表失败!", zap.Error(err))
+		response.FailWithMessage("获取失败", c)
+		return
+	}
+
+	// 转换为数据字典格式
+	var dictionaryList []DictionaryItem
+	for _, item := range list {
+		dictionaryList = append(dictionaryList, DictionaryItem{
+			Label: *item.Name,
+			Value: int64(item.ID),
+		})
+	}
+
+	response.OkWithDetailed(DictionaryResponse{
+		List: dictionaryList,
+	}, "获取成功", c)
+}
+
+
+// Cascader 根据公司选择产品，第一级是公司，第二级是产品
+// @Tags DspProduct
+// @Summary 根据公司选择产品，第一级是公司，第二级是产品
+// @Accept application/json
+// @Produce application/json
+// @Success 200 {object} response.Response{data=[]CascaderItem,msg=string} "成功"
+// @Router /dProduct/Cascader [GET]
+func (dProductApi *DspProductApi) Cascader(c *gin.Context) {
+	// 创建业务用Context
+	ctx := c.Request.Context()
+
+	var result []map[string]interface{}
+	err := dProductService.Cascader(ctx, &result)
+	if err != nil {
+		global.GVA_LOG.Error("获取级联数据失败!", zap.Error(err))
+		response.FailWithMessage("获取失败", c)
+		return
+	}
+
+	response.OkWithData(result, c)
+}
+
+

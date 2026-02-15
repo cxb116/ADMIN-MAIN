@@ -78,3 +78,13 @@ func (dspCompanyService *DspCompanyService)GetDspCompanyPublic(ctx context.Conte
     // 此方法为获取数据源定义的数据
     // 请自行实现
 }
+
+// GetDictionaryTreeListByType 参考数据字典协议，查询业务类
+// Author [yourname](https://github.com/yourname)
+func (dspCompanyService *DspCompanyService)GetDictionaryTreeListByType(ctx context.Context) (list []dsp.DspCompany, err error) {
+	// 查询所有公司数据
+	err = global.GVA_DB.Model(&dsp.DspCompany{}).Find(&list).Error
+	return list, err
+}
+
+

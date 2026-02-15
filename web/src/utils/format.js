@@ -24,7 +24,7 @@ export const filterDict = (value, options) => {
     if (!opts || !Array.isArray(opts)) return null
     
     for (const item of opts) {
-      if (item.value === targetValue) {
+      if (item.value == targetValue) {
         return item
       }
       
