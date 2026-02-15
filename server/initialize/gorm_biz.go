@@ -8,7 +8,7 @@ import (
 
 func bizModel() error {
 	db := global.GVA_DB
-	err := db.AutoMigrate(dsp.DspAdScene{}, ssp.SspMedia{}, ssp.SspApp{}, ssp.Ssp_ad_slot{}, dsp.DspCompany{}, dsp.DspProduct{}, dsp.DspSlotInfo{})
+	err := db.AutoMigrate(dsp.DspAdScene{}, ssp.SspMedia{}, ssp.SspApp{}, ssp.Ssp_ad_slot{}, dsp.DspCompany{}, dsp.DspProduct{}, dsp.DspSlotInfo{}, dsp.DspLaunch{})
 	if err != nil {
 		return err
 	}

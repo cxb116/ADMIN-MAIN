@@ -7,6 +7,7 @@ type ApiGroup struct {
 	DspCompanyApi
 	DspProductApi
 	DspSlotInfoApi
+	DspLaunchApi
 }
 
 var (
@@ -14,4 +15,5 @@ var (
 	dspCompanyService  = service.ServiceGroupApp.DspServiceGroup.DspCompanyService
 	dProductService    = service.ServiceGroupApp.DspServiceGroup.DspProductService
 	dspSlotInfoService = service.ServiceGroupApp.DspServiceGroup.DspSlotInfoService
+	dspLaunchService   = service.ServiceGroupApp.DspServiceGroup.DspLaunchService
 )
