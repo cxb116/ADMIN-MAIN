@@ -19,6 +19,7 @@ func initBizRouter(routers ...*gin.RouterGroup) {
 		dspRouter.InitDspCompanyRouter(privateGroup, publicGroup)
 		dspRouter.InitDspProductRouter(privateGroup, publicGroup) // 占位方法，保证文件可以正确加载，避免go空变量检测报错，请勿删除。
 		dspRouter.InitDspSlotInfoRouter(privateGroup, publicGroup)
+		dspRouter.InitDspLaunchRouter(privateGroup, publicGroup)
 	}
 	{
 		sspRouter := router.RouterGroupApp.Ssp
