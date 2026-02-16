@@ -473,7 +473,7 @@
 
             <el-table-column type="index" label="序号" width="60" />
 
-            <el-table-column label="媒体广告位" width="300">
+            <el-table-column label="媒体广告位" width="220">
               <template #default="scope">
                 <el-select
                   v-model="scope.row.sspSlotId"
