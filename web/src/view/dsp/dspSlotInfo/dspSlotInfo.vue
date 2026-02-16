@@ -292,11 +292,18 @@
           </div>
 
           <!-- 配置表格 -->
-          <el-table :data="launchList" border max-height="500">
+          <el-table
+            :data="launchList"
+            border
+            max-height="500"
+            :expand-row-keys="expandedRowKeys"
+            @expand-change="handleExpandChange"
+            row-key="id"
+          >
             <el-table-column type="expand" label="详细配置" width="80">
               <template #default="scope">
                 <div style="padding: 20px; background-color: #f9f9f9;">
-                  <el-form :model="scope.row" label-width="120px">
+                  <el-form :model="scope.row" label-width="120px" @click.stop>
                     <el-row :gutter="20">
                       <el-col :span="8">
                         <el-form-item label="投放策略">
@@ -948,6 +955,15 @@ const launchList = ref([])
 const allSspSlots = ref([])
 const saveLoading = ref(false)
 
+// 展开行状态管理
+const expandedRowKeys = ref([])
+
+// 处理展开/折叠变化
+const handleExpandChange = (row, expandedRows) => {
+  // 根据展开的行生成 keys 列表
+  expandedRowKeys.value = expandedRows.map(r => r.id || row.id)
+}
+
 // 计算权重总和
 const totalWeight = computed(() => {
   return launchList.value.reduce((sum, item) => {
@@ -968,6 +984,7 @@ const openLaunchConfig = async (row) => {
   launchConfigVisible.value = true
   launchList.value = []
   saveLoading.value = false
+  expandedRowKeys.value = [] // 清空展开状态
 
   try {
     const [launchRes, slotRes] = await Promise.all([
@@ -977,7 +994,7 @@ const openLaunchConfig = async (row) => {
 
     if (launchRes.code === 0 && launchRes.data) {
       launchList.value = launchRes.data.map(item => ({
-        id: item.id,
+        id: item.id || Date.now() + Math.random(), // 确保有唯一ID
         dspSlotId: row.ID,
         sspSlotId: item.sspSlotId,
         trafficWeight: item.trafficWeight ? Number(item.trafficWeight) : 0,
@@ -1020,8 +1037,9 @@ const matchSspSlotInfo = () => {
 
 // 添加配置行
 const addLaunch = () => {
+  const newId = Date.now() + Math.random() // 生成临时唯一ID
   launchList.value.push({
-    id: undefined,
+    id: newId,
     dspSlotId: currentDspSlot.value.ID,
     sspSlotId: undefined,
     trafficWeight: 0,
@@ -1043,7 +1061,13 @@ const addLaunch = () => {
 
 // 删除配置行
 const removeLaunch = (index) => {
+  const deletedRow = launchList.value[index]
   launchList.value.splice(index, 1)
+
+  // 从展开列表中移除被删除的行
+  if (deletedRow && deletedRow.id) {
+    expandedRowKeys.value = expandedRowKeys.value.filter(key => key !== deletedRow.id)
+  }
 }
 
 // 保存配置
