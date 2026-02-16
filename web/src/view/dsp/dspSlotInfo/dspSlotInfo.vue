@@ -473,7 +473,7 @@
 
             <el-table-column type="index" label="序号" width="60" />
 
-            <el-table-column label="媒体广告位" width="220">
+            <el-table-column label="媒体广告位" width="200">
               <template #default="scope">
                 <el-select
                   v-model="scope.row.sspSlotId"
@@ -499,7 +499,7 @@
               </template>
             </el-table-column>
 
-            <el-table-column label="流量权重" width="150">
+            <el-table-column label="流量权重" width="180">
               <template #default="scope">
                 <el-input-number
                   v-model="scope.row.trafficWeight"
