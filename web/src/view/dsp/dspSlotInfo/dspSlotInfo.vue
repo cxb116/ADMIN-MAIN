@@ -307,12 +307,19 @@
                     <el-row :gutter="20">
                       <el-col :span="8">
                         <el-form-item label="投放策略">
-                          <el-input
+                          <el-select
                             v-model="scope.row.launchStrategy"
-                            type="textarea"
-                            :rows="2"
-                            placeholder="JSON格式的投放策略"
-                          />
+                            placeholder="请选择投放策略"
+                            clearable
+                            style="width: 100%"
+                          >
+                            <el-option
+                              v-for="item in launchStrategyOptions"
+                              :key="item.value"
+                              :label="item.label"
+                              :value="item.value"
+                            />
+                          </el-select>
                         </el-form-item>
                       </el-col>
                       <el-col :span="8">
@@ -393,12 +400,19 @@
                       </el-col>
                       <el-col :span="8">
                         <el-form-item label="人群定向">
-                          <el-input
+                          <el-select
                             v-model="scope.row.crowdDirection"
-                            type="textarea"
-                            :rows="2"
-                            placeholder="JSON格式的人群定向"
-                          />
+                            placeholder="请选择人群定向"
+                            clearable
+                            style="width: 100%"
+                          >
+                            <el-option
+                              v-for="item in directionTypeOptions"
+                              :key="item.value"
+                              :label="item.label"
+                              :value="item.value"
+                            />
+                          </el-select>
                         </el-form-item>
                       </el-col>
                     </el-row>
@@ -406,22 +420,36 @@
                     <el-row :gutter="20">
                       <el-col :span="8">
                         <el-form-item label="地域定向">
-                          <el-input
+                          <el-select
                             v-model="scope.row.regionDirection"
-                            type="textarea"
-                            :rows="2"
-                            placeholder="JSON格式的地域定向"
-                          />
+                            placeholder="请选择地域定向"
+                            clearable
+                            style="width: 100%"
+                          >
+                            <el-option
+                              v-for="item in directionTypeOptions"
+                              :key="item.value"
+                              :label="item.label"
+                              :value="item.value"
+                            />
+                          </el-select>
                         </el-form-item>
                       </el-col>
                       <el-col :span="8">
                         <el-form-item label="品牌定向">
-                          <el-input
+                          <el-select
                             v-model="scope.row.brandDirection"
-                            type="textarea"
-                            :rows="2"
-                            placeholder="JSON格式的品牌定向"
-                          />
+                            placeholder="请选择品牌定向"
+                            clearable
+                            style="width: 100%"
+                          >
+                            <el-option
+                              v-for="item in directionTypeOptions"
+                              :key="item.value"
+                              :label="item.label"
+                              :value="item.value"
+                            />
+                          </el-select>
                         </el-form-item>
                       </el-col>
                       <el-col :span="8">
@@ -529,7 +557,7 @@ import {
 } from '@/api/dsp/dspProduct'
 import {
   getDictionaryTreeListByType
-} from '@/api/dsp/dspAdScene'
+} from '@/api/sysDictionaryDetail'
 import { batchSaveDspLaunch, getDspLaunchByDspSlotId } from '@/api/dsp/dspLaunch'
 import { getSsp_ad_slotList } from '@/api/ssp/sspAdSlot'
 // 富文本组件
@@ -559,6 +587,8 @@ const showAllQuery = ref(false)
 // 自动化生成的字典（可能为空）以及字段
 const pay_typeOptions = ref([])
 const sceneOptions = ref([])
+const launchStrategyOptions = ref([])      // 投放策略选项
+const directionTypeOptions = ref([])       // 定向类型选项（人群、地域、品牌）
 const formData = ref({
             name: '',
             scene_id: undefined,
@@ -713,6 +743,18 @@ const setOptions = async () =>{
     const cascaderRes = await Cascader()
     if (cascaderRes.code === 0) {
         cascaderOptions.value = cascaderRes.data
+    }
+
+    // 加载投放策略数据字典
+    const launchStrategyRes = await getDictionaryTreeListByType({ type: 'launch_strategy' })
+    if (launchStrategyRes.code === 0) {
+        launchStrategyOptions.value = launchStrategyRes.data.list
+    }
+
+    // 加载定向类型数据字典（人群、地域、品牌定向共享）
+    const directionTypeRes = await getDictionaryTreeListByType({ type: 'direction_type' })
+    if (directionTypeRes.code === 0) {
+        directionTypeOptions.value = directionTypeRes.data.list
     }
 
     // 数据加载完成后，再加载表格数据
