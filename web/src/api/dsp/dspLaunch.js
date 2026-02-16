@@ -108,3 +108,21 @@ export const getDspLaunchPublic = () => {
     method: 'get',
   })
 }
+
+// 批量保存预算投放配置
+export const batchSaveDspLaunch = (data) => {
+  return service({
+    url: '/dspLaunch/batchSave',
+    method: 'post',
+    data
+  })
+}
+
+// 根据预算位ID获取配置
+export const getDspLaunchByDspSlotId = (params) => {
+  return service({
+    url: '/dspLaunch/getByDspSlotId',
+    method: 'get',
+    params
+  })
+}

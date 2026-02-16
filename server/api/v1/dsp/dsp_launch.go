@@ -1,7 +1,8 @@
 package dsp
 
 import (
-	
+	"fmt"
+
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
     "github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
     "github.com/flipped-aurora/gin-vue-admin/server/model/dsp"
@@ -187,4 +188,64 @@ func (dspLaunchApi *DspLaunchApi) GetDspLaunchPublic(c *gin.Context) {
     response.OkWithDetailed(gin.H{
        "info": "不需要鉴权的预算投放表接口信息",
     }, "获取成功", c)
+}
+
+// BatchSaveDspLaunch 批量保存预算投放配置
+// @Tags DspLaunch
+// @Summary 批量保存预算投放配置
+// @Security ApiKeyAuth
+// @Accept application/json
+// @Produce application/json
+// @Param data body []dsp.DspLaunch true "预算投放配置列表"
+// @Success 200 {object} response.Response{msg=string} "保存成功"
+// @Router /dspLaunch/batchSave [post]
+func (dspLaunchApi *DspLaunchApi) BatchSaveDspLaunch(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	var launchList []dsp.DspLaunch
+	err := c.ShouldBindJSON(&launchList)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+
+	err = dspLaunchService.BatchSaveDspLaunch(ctx, launchList)
+	if err != nil {
+		global.GVA_LOG.Error("批量保存失败!", zap.Error(err))
+		response.FailWithMessage("批量保存失败: " + err.Error(), c)
+		return
+	}
+
+	response.OkWithMessage("保存成功", c)
+}
+
+// GetDspLaunchByDspSlotId 根据预算位ID获取配置
+// @Tags DspLaunch
+// @Summary 根据预算位ID获取配置
+// @Security ApiKeyAuth
+// @Accept application/json
+// @Produce application/json
+// @Param dspSlotId query int true "预算位ID"
+// @Success 200 {object} response.Response{data=[]dsp.DspLaunch,msg=string} "获取成功"
+// @Router /dspLaunch/getByDspSlotId [get]
+func (dspLaunchApi *DspLaunchApi) GetDspLaunchByDspSlotId(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	dspSlotId := c.Query("dspSlotId")
+	if dspSlotId == "" {
+		response.FailWithMessage("预算位ID不能为空", c)
+		return
+	}
+
+	var slotId int32
+	fmt.Sscanf(dspSlotId, "%d", &slotId)
+
+	list, err := dspLaunchService.GetDspLaunchByDspSlotId(ctx, slotId)
+	if err != nil {
+		global.GVA_LOG.Error("获取配置失败!", zap.Error(err))
+		response.FailWithMessage("获取配置失败: " + err.Error(), c)
+		return
+	}
+
+	response.OkWithDetailed(list, "获取成功", c)
 }
