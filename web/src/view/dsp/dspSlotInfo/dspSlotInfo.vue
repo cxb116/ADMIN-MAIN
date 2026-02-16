@@ -511,7 +511,7 @@
               </template>
             </el-table-column>
 
-            <el-table-column label="底价(分)" width="150">
+            <el-table-column v-if="false" label="底价(分)" width="150">
               <template #default="scope">
                 <el-input-number
                   v-model="scope.row.floorPrice"
