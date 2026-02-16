@@ -269,7 +269,7 @@
         <el-dialog
           v-model="launchConfigVisible"
           :title="`预算配置 - ${currentDspSlot.name}`"
-          width="1000px"
+          width="90%"
           :close-on-click-modal="false"
         >
           <!-- 权重提示 -->
@@ -295,6 +295,7 @@
           <el-table
             :data="launchList"
             border
+            style="width: 100%; table-layout: fixed;"
             max-height="500"
             :expand-row-keys="expandedRowKeys"
             @expand-change="handleExpandChange"
@@ -473,7 +474,7 @@
 
             <el-table-column type="index" label="序号" width="60" />
 
-            <el-table-column label="媒体广告位" width="200">
+            <el-table-column label="媒体广告位" min-width="300">
               <template #default="scope">
                 <el-select
                   v-model="scope.row.sspSlotId"
@@ -499,7 +500,7 @@
               </template>
             </el-table-column>
 
-            <el-table-column label="流量权重" width="180">
+            <el-table-column label="流量权重" min-width="200">
               <template #default="scope">
                 <el-input-number
                   v-model="scope.row.trafficWeight"
