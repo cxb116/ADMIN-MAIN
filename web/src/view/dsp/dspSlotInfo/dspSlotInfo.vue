@@ -386,7 +386,7 @@
                           />
                         </el-form-item>
                       </el-col>
-                      <el-col :span="8">
+                      <el-col :span="16">
                         <el-form-item label="投放时段">
                           <el-date-picker
                             v-model="scope.row.launchTime"
@@ -398,6 +398,9 @@
                           />
                         </el-form-item>
                       </el-col>
+                    </el-row>
+
+                    <el-row :gutter="20">
                       <el-col :span="8">
                         <el-form-item label="人群定向">
                           <el-select
@@ -415,9 +418,6 @@
                           </el-select>
                         </el-form-item>
                       </el-col>
-                    </el-row>
-
-                    <el-row :gutter="20">
                       <el-col :span="8">
                         <el-form-item label="地域定向">
                           <el-select
@@ -452,7 +452,10 @@
                           </el-select>
                         </el-form-item>
                       </el-col>
-                      <el-col :span="8">
+                    </el-row>
+
+                    <el-row :gutter="20">
+                      <el-col :span="24">
                         <el-form-item label="备注">
                           <el-input
                             v-model="scope.row.remark"
