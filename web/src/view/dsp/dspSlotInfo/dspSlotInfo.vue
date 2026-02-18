@@ -118,7 +118,6 @@
 </el-table-column>
         <el-table-column align="left" label="操作" fixed="right" :min-width="appStore.operateMinWith">
             <template #default="scope">
-            <el-button type="primary" link @click="openLaunchConfig(scope.row)"><el-icon style="margin-right: 5px"><Setting /></el-icon>预算配置</el-button>
             <el-button  type="primary" link class="table-button" @click="getDetails(scope.row)"><el-icon style="margin-right: 5px"><InfoFilled /></el-icon>查看</el-button>
             <el-button  type="primary" link icon="edit" class="table-button" @click="updateDspSlotInfoFunc(scope.row)">编辑</el-button>
             <el-button   type="primary" link icon="delete" @click="deleteRow(scope.row)">删除</el-button>
@@ -152,8 +151,11 @@
             <el-form-item label="预算位名称:" prop="name">
     <el-input v-model="formData.name" :clearable="true" placeholder="请输入预算位名称" />
 </el-form-item>
+            <el-form-item label="预算方广告位:" prop="dsp_slot_code">
+    <el-input v-model="formData.dsp_slot_code" :clearable="true" placeholder="请输入预算方广告位" />
+</el-form-item>
             <el-form-item label="广告类型:" prop="scene_id">
-    <el-select v-model="formData.scene_id" placeholder="请选择广告类型" :clearable="true" style="width: 100%">
+    <el-select v-model="formData.scene_id" placeholder="请选择广告类型" :clearable="true" :disabled="type === 'update'" style="width: 100%">
       <el-option
         v-for="item in sceneOptions.list"
         :key="item.value"
@@ -162,8 +164,23 @@
       />
     </el-select>
 </el-form-item>
-            <el-form-item label="预算方广告位:" prop="dsp_slot_code">
-    <el-input v-model="formData.dsp_slot_code" :clearable="true" placeholder="请输入预算方广告位" />
+            <el-form-item label="公司产品:" prop="cascaderValue">
+    <el-cascader
+      v-model="formData.cascaderValue"
+      :options="cascaderOptions"
+      :props="{
+        expandTrigger: 'hover',
+        emitPath: true,
+        value: 'value',
+        label: 'label',
+        children: 'children'
+      }"
+      placeholder="请选择公司产品"
+      :disabled="type === 'update'"
+      style="width: 100%"
+      clearable
+      filterable
+    />
 </el-form-item>
             <el-form-item label="预算方APPKEY:" prop="dsp_app_key">
     <el-input v-model="formData.dsp_app_key" :clearable="true" placeholder="请输入预算方APPKEY" />
@@ -192,23 +209,255 @@
             <el-form-item label="成交价系数:" prop="dsp_deal_ratio">
     <el-input v-model.number="formData.dsp_deal_ratio" :clearable="true" placeholder="请输入成交价系数" />
 </el-form-item>
-            <el-form-item label="公司产品:" prop="cascaderValue">
-    <el-cascader
-      v-model="formData.cascaderValue"
-      :options="cascaderOptions"
-      :props="{
-        expandTrigger: 'hover',
-        emitPath: true,
-        value: 'value',
-        label: 'label',
-        children: 'children'
-      }"
-      placeholder="请选择公司产品"
-      style="width: 100%"
-      clearable
-      filterable
-    />
-</el-form-item>
+
+            <!-- 预算配置 -->
+            <el-divider content-position="left">预算配置</el-divider>
+            <el-alert
+              :type="totalWeight === 100 ? 'success' : 'warning'"
+              :closable="false"
+              show-icon
+              style="margin-bottom: 16px"
+            >
+              <template #title>
+                <span>当前流量权重总和: <strong>{{ totalWeight }}</strong> / 100</span>
+              </template>
+            </el-alert>
+
+            <div style="margin-bottom: 16px">
+              <el-button type="primary" @click="addLaunch">
+                <el-icon><Plus /></el-icon> 添加媒体广告位
+              </el-button>
+            </div>
+
+            <el-table
+              :data="launchList"
+              border
+              style="width: 100%; table-layout: fixed;"
+              max-height="500"
+              :expand-row-keys="expandedRowKeys"
+              @expand-change="handleExpandChange"
+              row-key="id"
+            >
+              <el-table-column type="expand" label="详细配置" width="80">
+                <template #default="scope">
+                  <div style="padding: 20px; background-color: #f9f9f9;">
+                    <el-form :model="scope.row" label-width="120px" @click.stop>
+                      <el-row :gutter="20">
+                        <el-col :span="8">
+                          <el-form-item label="投放策略">
+                            <el-select
+                              v-model="scope.row.launchStrategy"
+                              placeholder="请选择投放策略"
+                              clearable
+                              style="width: 100%"
+                            >
+                              <el-option
+                                v-for="item in launchStrategyOptions"
+                                :key="item.value"
+                                :label="item.label"
+                                :value="item.value"
+                              />
+                            </el-select>
+                          </el-form-item>
+                        </el-col>
+                        <el-col :span="8">
+                          <el-form-item label="IP限流次数">
+                            <el-input-number
+                              v-model="scope.row.ipLimit"
+                              :min="0"
+                              placeholder="不限流"
+                              style="width: 100%"
+                            />
+                          </el-form-item>
+                        </el-col>
+                        <el-col :span="8">
+                          <el-form-item label="捕获日志时长">
+                            <el-input-number
+                              v-model="scope.row.logCaptureAt"
+                              :min="0"
+                              placeholder="默认300"
+                              style="width: 100%"
+                            />
+                          </el-form-item>
+                        </el-col>
+                      </el-row>
+
+                      <el-row :gutter="20">
+                        <el-col :span="8">
+                          <el-form-item label="上报黑名单">
+                            <el-input
+                              v-model="scope.row.trackSchwarz"
+                              placeholder="黑名单IP或域名"
+                            />
+                          </el-form-item>
+                        </el-col>
+                        <el-col :span="8">
+                          <el-form-item label="请求次数(次/天)">
+                            <el-input-number
+                              v-model="scope.row.req"
+                              :min="0"
+                              placeholder="不限"
+                              style="width: 100%"
+                            />
+                          </el-form-item>
+                        </el-col>
+                        <el-col :span="8">
+                          <el-form-item label="展现次数">
+                            <el-input-number
+                              v-model="scope.row.ims"
+                              :min="0"
+                              placeholder="不限"
+                              style="width: 100%"
+                            />
+                          </el-form-item>
+                        </el-col>
+                      </el-row>
+
+                      <el-row :gutter="20">
+                        <el-col :span="8">
+                          <el-form-item label="点击次数">
+                            <el-input-number
+                              v-model="scope.row.clk"
+                              :min="0"
+                              placeholder="不限"
+                              style="width: 100%"
+                            />
+                          </el-form-item>
+                        </el-col>
+                        <el-col :span="16">
+                          <el-form-item label="投放时段">
+                            <el-date-picker
+                              v-model="scope.row.launchTime"
+                              type="datetimerange"
+                              range-separator="至"
+                              start-placeholder="开始时间"
+                              end-placeholder="结束时间"
+                              style="width: 100%"
+                            />
+                          </el-form-item>
+                        </el-col>
+                      </el-row>
+
+                      <el-row :gutter="20">
+                        <el-col :span="8">
+                          <el-form-item label="人群定向">
+                            <el-select
+                              v-model="scope.row.crowdDirection"
+                              placeholder="请选择人群定向"
+                              clearable
+                              style="width: 100%"
+                            >
+                              <el-option
+                                v-for="item in directionTypeOptions"
+                                :key="item.value"
+                                :label="item.label"
+                                :value="item.value"
+                              />
+                            </el-select>
+                          </el-form-item>
+                        </el-col>
+                        <el-col :span="8">
+                          <el-form-item label="地域定向">
+                            <el-select
+                              v-model="scope.row.regionDirection"
+                              placeholder="请选择地域定向"
+                              clearable
+                              style="width: 100%"
+                            >
+                              <el-option
+                                v-for="item in directionTypeOptions"
+                                :key="item.value"
+                                :label="item.label"
+                                :value="item.value"
+                              />
+                            </el-select>
+                          </el-form-item>
+                        </el-col>
+                        <el-col :span="8">
+                          <el-form-item label="品牌定向">
+                            <el-select
+                              v-model="scope.row.brandDirection"
+                              placeholder="请选择品牌定向"
+                              clearable
+                              style="width: 100%"
+                            >
+                              <el-option
+                                v-for="item in directionTypeOptions"
+                                :key="item.value"
+                                :label="item.label"
+                                :value="item.value"
+                              />
+                            </el-select>
+                          </el-form-item>
+                        </el-col>
+                      </el-row>
+
+                      <el-row :gutter="20">
+                        <el-col :span="24">
+                          <el-form-item label="备注">
+                            <el-input
+                              v-model="scope.row.remark"
+                              type="textarea"
+                              :rows="2"
+                              placeholder="备注信息"
+                            />
+                          </el-form-item>
+                        </el-col>
+                      </el-row>
+                    </el-form>
+                  </div>
+                </template>
+              </el-table-column>
+
+              <el-table-column type="index" label="序号" width="60" />
+
+              <el-table-column label="媒体广告位" min-width="300">
+                <template #default="scope">
+                  <el-select
+                    v-model="scope.row.sspSlotId"
+                    placeholder="请选择媒体广告位"
+                    filterable
+                    style="width: 100%"
+                  >
+                    <el-option
+                      v-for="slot in allSspSlots"
+                      :key="slot.ID"
+                      :label="`${slot.app_name} - ${slot.name}`"
+                      :value="slot.ID"
+                      :disabled="isSlotSelected(slot.ID, scope.$index)"
+                    >
+                      <div style="display: flex; justify-content: space-between; font-size: 12px">
+                        <span>{{ slot.app_name }} - {{ slot.name }}</span>
+                        <span style="color: #8492a6">
+                          尺寸: {{ slot.width }}x{{ slot.height }}
+                        </span>
+                      </div>
+                    </el-option>
+                  </el-select>
+                </template>
+              </el-table-column>
+
+              <el-table-column label="流量权重" min-width="200">
+                <template #default="scope">
+                  <el-input-number
+                    v-model="scope.row.trafficWeight"
+                    :min="0"
+                    :max="100"
+                    :step="1"
+                    style="width: 120px"
+                  />
+                </template>
+              </el-table-column>
+
+              <el-table-column label="操作" width="100">
+                <template #default="scope">
+                  <el-button type="danger" link @click="removeLaunch(scope.$index)">
+                    <el-icon><Delete /></el-icon> 删除
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+
             <el-form-item label="备注:" prop="remark">
     <RichEdit v-model="formData.remark"/>
 </el-form-item>
@@ -264,285 +513,6 @@
 </el-descriptions-item>
             </el-descriptions>
         </el-drawer>
-
-        <!-- 预算配置对话框 -->
-        <el-dialog
-          v-model="launchConfigVisible"
-          :title="`预算配置 - ${currentDspSlot.name}`"
-          width="90%"
-          :close-on-click-modal="false"
-        >
-          <!-- 权重提示 -->
-          <el-alert
-            :type="totalWeight === 100 ? 'success' : 'warning'"
-            :closable="false"
-            show-icon
-            style="margin-bottom: 16px"
-          >
-            <template #title>
-              <span>当前流量权重总和: <strong>{{ totalWeight }}</strong> / 100</span>
-            </template>
-          </el-alert>
-
-          <!-- 操作按钮 -->
-          <div style="margin-bottom: 16px">
-            <el-button type="primary" @click="addLaunch">
-              <el-icon><Plus /></el-icon> 添加媒体广告位
-            </el-button>
-          </div>
-
-          <!-- 配置表格 -->
-          <el-table
-            :data="launchList"
-            border
-            style="width: 100%; table-layout: fixed;"
-            max-height="500"
-            :expand-row-keys="expandedRowKeys"
-            @expand-change="handleExpandChange"
-            row-key="id"
-          >
-            <el-table-column type="expand" label="详细配置" width="80">
-              <template #default="scope">
-                <div style="padding: 20px; background-color: #f9f9f9;">
-                  <el-form :model="scope.row" label-width="120px" @click.stop>
-                    <el-row :gutter="20">
-                      <el-col :span="8">
-                        <el-form-item label="投放策略">
-                          <el-select
-                            v-model="scope.row.launchStrategy"
-                            placeholder="请选择投放策略"
-                            clearable
-                            style="width: 100%"
-                          >
-                            <el-option
-                              v-for="item in launchStrategyOptions"
-                              :key="item.value"
-                              :label="item.label"
-                              :value="item.value"
-                            />
-                          </el-select>
-                        </el-form-item>
-                      </el-col>
-                      <el-col :span="8">
-                        <el-form-item label="IP限流次数">
-                          <el-input-number
-                            v-model="scope.row.ipLimit"
-                            :min="0"
-                            placeholder="不限流"
-                            style="width: 100%"
-                          />
-                        </el-form-item>
-                      </el-col>
-                      <el-col :span="8">
-                        <el-form-item label="捕获日志时长">
-                          <el-input-number
-                            v-model="scope.row.logCaptureAt"
-                            :min="0"
-                            placeholder="默认300"
-                            style="width: 100%"
-                          />
-                        </el-form-item>
-                      </el-col>
-                    </el-row>
-
-                    <el-row :gutter="20">
-                      <el-col :span="8">
-                        <el-form-item label="上报黑名单">
-                          <el-input
-                            v-model="scope.row.trackSchwarz"
-                            placeholder="黑名单IP或域名"
-                          />
-                        </el-form-item>
-                      </el-col>
-                      <el-col :span="8">
-                        <el-form-item label="请求次数(次/天)">
-                          <el-input-number
-                            v-model="scope.row.req"
-                            :min="0"
-                            placeholder="不限"
-                            style="width: 100%"
-                          />
-                        </el-form-item>
-                      </el-col>
-                      <el-col :span="8">
-                        <el-form-item label="展现次数">
-                          <el-input-number
-                            v-model="scope.row.ims"
-                            :min="0"
-                            placeholder="不限"
-                            style="width: 100%"
-                          />
-                        </el-form-item>
-                      </el-col>
-                    </el-row>
-
-                    <el-row :gutter="20">
-                      <el-col :span="8">
-                        <el-form-item label="点击次数">
-                          <el-input-number
-                            v-model="scope.row.clk"
-                            :min="0"
-                            placeholder="不限"
-                            style="width: 100%"
-                          />
-                        </el-form-item>
-                      </el-col>
-                      <el-col :span="16">
-                        <el-form-item label="投放时段">
-                          <el-date-picker
-                            v-model="scope.row.launchTime"
-                            type="datetimerange"
-                            range-separator="至"
-                            start-placeholder="开始时间"
-                            end-placeholder="结束时间"
-                            style="width: 100%"
-                          />
-                        </el-form-item>
-                      </el-col>
-                    </el-row>
-
-                    <el-row :gutter="20">
-                      <el-col :span="8">
-                        <el-form-item label="人群定向">
-                          <el-select
-                            v-model="scope.row.crowdDirection"
-                            placeholder="请选择人群定向"
-                            clearable
-                            style="width: 100%"
-                          >
-                            <el-option
-                              v-for="item in directionTypeOptions"
-                              :key="item.value"
-                              :label="item.label"
-                              :value="item.value"
-                            />
-                          </el-select>
-                        </el-form-item>
-                      </el-col>
-                      <el-col :span="8">
-                        <el-form-item label="地域定向">
-                          <el-select
-                            v-model="scope.row.regionDirection"
-                            placeholder="请选择地域定向"
-                            clearable
-                            style="width: 100%"
-                          >
-                            <el-option
-                              v-for="item in directionTypeOptions"
-                              :key="item.value"
-                              :label="item.label"
-                              :value="item.value"
-                            />
-                          </el-select>
-                        </el-form-item>
-                      </el-col>
-                      <el-col :span="8">
-                        <el-form-item label="品牌定向">
-                          <el-select
-                            v-model="scope.row.brandDirection"
-                            placeholder="请选择品牌定向"
-                            clearable
-                            style="width: 100%"
-                          >
-                            <el-option
-                              v-for="item in directionTypeOptions"
-                              :key="item.value"
-                              :label="item.label"
-                              :value="item.value"
-                            />
-                          </el-select>
-                        </el-form-item>
-                      </el-col>
-                    </el-row>
-
-                    <el-row :gutter="20">
-                      <el-col :span="24">
-                        <el-form-item label="备注">
-                          <el-input
-                            v-model="scope.row.remark"
-                            type="textarea"
-                            :rows="2"
-                            placeholder="备注信息"
-                          />
-                        </el-form-item>
-                      </el-col>
-                    </el-row>
-                  </el-form>
-                </div>
-              </template>
-            </el-table-column>
-
-            <el-table-column type="index" label="序号" width="60" />
-
-            <el-table-column label="媒体广告位" min-width="300">
-              <template #default="scope">
-                <el-select
-                  v-model="scope.row.sspSlotId"
-                  placeholder="请选择媒体广告位"
-                  filterable
-                  style="width: 100%"
-                >
-                  <el-option
-                    v-for="slot in allSspSlots"
-                    :key="slot.ID"
-                    :label="`${slot.app_name} - ${slot.name}`"
-                    :value="slot.ID"
-                    :disabled="isSlotSelected(slot.ID, scope.$index)"
-                  >
-                    <div style="display: flex; justify-content: space-between; font-size: 12px">
-                      <span>{{ slot.app_name }} - {{ slot.name }}</span>
-                      <span style="color: #8492a6">
-                        尺寸: {{ slot.width }}x{{ slot.height }}
-                      </span>
-                    </div>
-                  </el-option>
-                </el-select>
-              </template>
-            </el-table-column>
-
-            <el-table-column label="流量权重" min-width="200">
-              <template #default="scope">
-                <el-input-number
-                  v-model="scope.row.trafficWeight"
-                  :min="0"
-                  :max="100"
-                  :step="1"
-                  style="width: 120px"
-                />
-              </template>
-            </el-table-column>
-
-            <el-table-column v-if="false" label="底价(分)" width="150">
-              <template #default="scope">
-                <el-input-number
-                  v-model="scope.row.floorPrice"
-                  :min="0"
-                  style="width: 120px"
-                />
-              </template>
-            </el-table-column>
-
-            <el-table-column label="操作" width="100">
-              <template #default="scope">
-                <el-button type="danger" link @click="removeLaunch(scope.$index)">
-                  <el-icon><Delete /></el-icon> 删除
-                </el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-
-          <template #footer>
-            <el-button @click="launchConfigVisible = false">取消</el-button>
-            <el-button
-              type="primary"
-              :disabled="launchList.length === 0 || totalWeight !== 100"
-              :loading="saveLoading"
-              @click="saveLaunchConfig"
-            >
-              保存配置
-            </el-button>
-          </template>
-        </el-dialog>
 
   </div>
 </template>
@@ -866,6 +836,48 @@ const updateDspSlotInfoFunc = async(row) => {
           ]
         }
         dialogFormVisible.value = true
+
+        // 加载预算配置数据
+        currentDspSlot.value = row
+        launchList.value = []
+        expandedRowKeys.value = []
+
+        try {
+          const [launchRes, slotRes] = await Promise.all([
+            getDspLaunchByDspSlotId({ dspSlotId: row.ID }),
+            getSsp_ad_slotList({ page: 1, pageSize: 9999, enable: 1 })
+          ])
+
+          if (launchRes.code === 0 && launchRes.data) {
+            launchList.value = launchRes.data.map(item => ({
+              id: item.id || Date.now() + Math.random(),
+              dspSlotId: row.ID,
+              sspSlotId: item.sspSlotId,
+              trafficWeight: item.trafficWeight ? Number(item.trafficWeight) : 0,
+              floorPrice: item.floorPrice || 0,
+              launchStrategy: item.launchStrategy || '',
+              ipLimit: item.ipLimit || undefined,
+              logCaptureAt: item.logCaptureAt || 300,
+              trackSchwarz: item.trackSchwarz || '',
+              req: item.req || undefined,
+              ims: item.ims || undefined,
+              clk: item.clk || undefined,
+              launchTime: item.launchTime || null,
+              crowdDirection: item.crowdDirection || '',
+              regionDirection: item.regionDirection || '',
+              brandDirection: item.brandDirection || '',
+              remark: item.remark || ''
+            }))
+          }
+
+          if (slotRes.code === 0 && slotRes.data.list) {
+            allSspSlots.value = slotRes.data.list
+          }
+
+          matchSspSlotInfo()
+        } catch (error) {
+          ElMessage.error('加载预算配置失败')
+        }
     }
 }
 
@@ -889,9 +901,23 @@ const deleteDspSlotInfoFunc = async (row) => {
 const dialogFormVisible = ref(false)
 
 // 打开弹窗
-const openDialog = () => {
+const openDialog = async () => {
     type.value = 'create'
     dialogFormVisible.value = true
+
+    // 加载媒体广告位列表
+    try {
+      const slotRes = await getSsp_ad_slotList({ page: 1, pageSize: 9999, enable: 1 })
+      if (slotRes.code === 0 && slotRes.data.list) {
+        allSspSlots.value = slotRes.data.list
+      }
+    } catch (error) {
+      ElMessage.error('加载媒体广告位失败')
+    }
+
+    // 初始化空的预算配置列表
+    launchList.value = []
+    expandedRowKeys.value = []
 }
 
 // 关闭弹窗
@@ -929,6 +955,8 @@ const enterDialog = async () => {
              }
 
               let res
+              const isNew = type.value === 'create'
+
               switch (type.value) {
                 case 'create':
                   res = await createDspSlotInfo(formData.value)
@@ -940,14 +968,61 @@ const enterDialog = async () => {
                   res = await createDspSlotInfo(formData.value)
                   break
               }
-              btnLoading.value = false
+
               if (res.code === 0) {
+                // 如果是新增，获取新创建的ID
+                const dspSlotId = isNew ? res.data.ID : formData.value.ID
+
+                // 保存预算配置
+                if (launchList.value.length > 0) {
+                  const saveData = launchList.value.map(item => {
+                    const saveItem = {
+                      dspSlotId: dspSlotId,
+                      sspSlotId: item.sspSlotId,
+                      trafficWeight: String(item.trafficWeight),
+                      floorPrice: item.floorPrice
+                    }
+
+                    // 添加可选字段（只添加有值的字段）
+                    if (item.launchStrategy) saveItem.launchStrategy = item.launchStrategy
+                    if (item.ipLimit !== undefined && item.ipLimit !== null) saveItem.ipLimit = item.ipLimit
+                    if (item.logCaptureAt !== undefined && item.logCaptureAt !== null) saveItem.logCaptureAt = item.logCaptureAt
+                    if (item.trackSchwarz) saveItem.trackSchwarz = item.trackSchwarz
+                    if (item.req !== undefined && item.req !== null) saveItem.req = item.req
+                    if (item.ims !== undefined && item.ims !== null) saveItem.ims = item.ims
+                    if (item.clk !== undefined && item.clk !== null) saveItem.clk = item.clk
+                    if (item.launchTime) saveItem.launchTime = item.launchTime
+                    if (item.crowdDirection) saveItem.crowdDirection = item.crowdDirection
+                    if (item.regionDirection) saveItem.regionDirection = item.regionDirection
+                    if (item.brandDirection) saveItem.brandDirection = item.brandDirection
+                    if (item.remark) saveItem.remark = item.remark
+
+                    return saveItem
+                  })
+
+                  try {
+                    const launchRes = await batchSaveDspLaunch(saveData)
+                    if (launchRes.code !== 0) {
+                      ElMessage.error('预算配置保存失败：' + launchRes.msg)
+                      btnLoading.value = false
+                      return
+                    }
+                  } catch (error) {
+                    ElMessage.error('预算配置保存失败：' + error.message)
+                    btnLoading.value = false
+                    return
+                  }
+                }
+
+                btnLoading.value = false
                 ElMessage({
                   type: 'success',
                   message: '创建/更改成功'
                 })
                 closeDialog()
                 getTableData()
+              } else {
+                btnLoading.value = false
               }
       })
 }
@@ -996,11 +1071,9 @@ const getProductName = (companyId, productId) => {
 
 // ========== 预算配置功能 ==========
 // 预算配置对话框控制
-const launchConfigVisible = ref(false)
 const currentDspSlot = ref({})
 const launchList = ref([])
 const allSspSlots = ref([])
-const saveLoading = ref(false)
 
 // 展开行状态管理
 const expandedRowKeys = ref([])
@@ -1023,52 +1096,6 @@ const isSlotSelected = (slotId, currentIndex) => {
   return launchList.value.some((item, index) => {
     return index !== currentIndex && item.sspSlotId === slotId
   })
-}
-
-// 打开配置对话框
-const openLaunchConfig = async (row) => {
-  currentDspSlot.value = row
-  launchConfigVisible.value = true
-  launchList.value = []
-  saveLoading.value = false
-  expandedRowKeys.value = [] // 清空展开状态
-
-  try {
-    const [launchRes, slotRes] = await Promise.all([
-      getDspLaunchByDspSlotId({ dspSlotId: row.ID }),
-      getSsp_ad_slotList({ page: 1, pageSize: 9999, enable: 1 })
-    ])
-
-    if (launchRes.code === 0 && launchRes.data) {
-      launchList.value = launchRes.data.map(item => ({
-        id: item.id || Date.now() + Math.random(), // 确保有唯一ID
-        dspSlotId: row.ID,
-        sspSlotId: item.sspSlotId,
-        trafficWeight: item.trafficWeight ? Number(item.trafficWeight) : 0,
-        floorPrice: item.floorPrice || 0,
-        launchStrategy: item.launchStrategy || '',
-        ipLimit: item.ipLimit || undefined,
-        logCaptureAt: item.logCaptureAt || 300,
-        trackSchwarz: item.trackSchwarz || '',
-        req: item.req || undefined,
-        ims: item.ims || undefined,
-        clk: item.clk || undefined,
-        launchTime: item.launchTime || null,
-        crowdDirection: item.crowdDirection || '',
-        regionDirection: item.regionDirection || '',
-        brandDirection: item.brandDirection || '',
-        remark: item.remark || ''
-      }))
-    }
-
-    if (slotRes.code === 0 && slotRes.data.list) {
-      allSspSlots.value = slotRes.data.list
-    }
-
-    matchSspSlotInfo()
-  } catch (error) {
-    ElMessage.error('加载数据失败')
-  }
 }
 
 // 匹配媒体广告位信息
@@ -1114,72 +1141,6 @@ const removeLaunch = (index) => {
   // 从展开列表中移除被删除的行
   if (deletedRow && deletedRow.id) {
     expandedRowKeys.value = expandedRowKeys.value.filter(key => key !== deletedRow.id)
-  }
-}
-
-// 保存配置
-const saveLaunchConfig = async () => {
-  if (launchList.value.length === 0) {
-    ElMessage.error('请至少添加一个媒体广告位')
-    return
-  }
-
-  if (totalWeight.value !== 100) {
-    ElMessage.error('流量权重总和必须等于100')
-    return
-  }
-
-  const emptySlot = launchList.value.find(item => !item.sspSlotId)
-  if (emptySlot) {
-    ElMessage.error('请选择媒体广告位')
-    return
-  }
-
-  const emptyWeight = launchList.value.find(item => !item.trafficWeight || item.trafficWeight <= 0)
-  if (emptyWeight) {
-    ElMessage.error('请填写流量权重')
-    return
-  }
-
-  // 将所有字段（包括可选字段）发送到后端
-  const saveData = launchList.value.map(item => {
-    const saveItem = {
-      dspSlotId: item.dspSlotId,
-      sspSlotId: item.sspSlotId,
-      trafficWeight: String(item.trafficWeight),
-      floorPrice: item.floorPrice
-    }
-
-    // 添加可选字段（只添加有值的字段）
-    if (item.launchStrategy) saveItem.launchStrategy = item.launchStrategy
-    if (item.ipLimit !== undefined && item.ipLimit !== null) saveItem.ipLimit = item.ipLimit
-    if (item.logCaptureAt !== undefined && item.logCaptureAt !== null) saveItem.logCaptureAt = item.logCaptureAt
-    if (item.trackSchwarz) saveItem.trackSchwarz = item.trackSchwarz
-    if (item.req !== undefined && item.req !== null) saveItem.req = item.req
-    if (item.ims !== undefined && item.ims !== null) saveItem.ims = item.ims
-    if (item.clk !== undefined && item.clk !== null) saveItem.clk = item.clk
-    if (item.launchTime) saveItem.launchTime = item.launchTime
-    if (item.crowdDirection) saveItem.crowdDirection = item.crowdDirection
-    if (item.regionDirection) saveItem.regionDirection = item.regionDirection
-    if (item.brandDirection) saveItem.brandDirection = item.brandDirection
-    if (item.remark) saveItem.remark = item.remark
-
-    return saveItem
-  })
-
-  try {
-    saveLoading.value = true
-    const res = await batchSaveDspLaunch(saveData)
-    if (res.code === 0) {
-      ElMessage.success('保存成功')
-      launchConfigVisible.value = false
-    } else {
-      ElMessage.error(res.msg || '保存失败')
-    }
-  } catch (error) {
-    ElMessage.error('保存失败：' + error.message)
-  } finally {
-    saveLoading.value = false
   }
 }
 
