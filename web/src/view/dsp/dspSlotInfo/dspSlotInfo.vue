@@ -161,7 +161,7 @@
     <el-input v-model="formData.dsp_slot_code" :clearable="true" placeholder="请输入预算方广告位" />
 </el-form-item>
             <el-form-item label="操作系统类型:" prop="os_type">
-    <el-select v-model="formData.os_type" placeholder="请选择操作系统类型" :clearable="true" style="width: 100%">
+    <el-select v-model="formData.os_type" placeholder="请选择操作系统类型" :clearable="true" :disabled="type === 'update'" style="width: 100%">
       <el-option
         v-for="item in osTypeOptions"
         :key="item.value"
@@ -241,7 +241,7 @@
 
             <div style="margin-bottom: 16px">
               <el-button type="primary" @click="addLaunch">
-                <el-icon><Plus /></el-icon> 添加媒体广告位
+                <el-icon><Plus /></el-icon> 添加预算广告位
               </el-button>
             </div>
 
@@ -427,11 +427,11 @@
 
               <el-table-column type="index" label="序号" width="60" />
 
-              <el-table-column label="媒体广告位" min-width="300">
+              <el-table-column label="预算广告位" min-width="300">
                 <template #default="scope">
                   <el-select
                     v-model="scope.row.sspSlotId"
-                    placeholder="请选择媒体广告位"
+                    placeholder="请选择预算广告位"
                     filterable
                     style="width: 100%"
                   >
@@ -932,14 +932,14 @@ const openDialog = async () => {
     type.value = 'create'
     dialogFormVisible.value = true
 
-    // 加载媒体广告位列表
+    // 加载预算广告位列表
     try {
       const slotRes = await getSsp_ad_slotList({ page: 1, pageSize: 9999, enable: 1 })
       if (slotRes.code === 0 && slotRes.data.list) {
         allSspSlots.value = slotRes.data.list
       }
     } catch (error) {
-      ElMessage.error('加载媒体广告位失败')
+      ElMessage.error('加载预算广告位失败')
     }
 
     // 初始化空的预算配置列表
@@ -1126,7 +1126,7 @@ const isSlotSelected = (slotId, currentIndex) => {
   })
 }
 
-// 匹配媒体广告位信息
+// 匹配预算广告位信息
 const matchSspSlotInfo = () => {
   launchList.value.forEach(launch => {
     const slot = allSspSlots.value.find(s => s.ID === launch.sspSlotId)
