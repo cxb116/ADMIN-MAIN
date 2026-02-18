@@ -562,6 +562,7 @@ import {
 import {
   getDictionaryTreeListByType
 } from '@/api/sysDictionaryDetail'
+import {getDictionaryTreeListByType as dspAdSceneList} from '@/api/dsp/dspAdScene'
 import { batchSaveDspLaunch, getDspLaunchByDspSlotId } from '@/api/dsp/dspLaunch'
 import { getSsp_ad_slotList } from '@/api/ssp/sspAdSlot'
 // 富文本组件
@@ -738,7 +739,7 @@ const setOptions = async () =>{
     pay_typeOptions.value = await getDictFunc('pay_type')
 
     // 获取广告场景数据
-    const sceneRes = await getDictionaryTreeListByType()
+    const sceneRes = await dspAdSceneList()
     if (sceneRes.code === 0) {
         sceneOptions.value = sceneRes.data
     }
