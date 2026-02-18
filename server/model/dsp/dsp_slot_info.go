@@ -11,6 +11,7 @@ type DspSlotInfo struct {
   Name  *string `json:"name" form:"name" gorm:"column:name;" binding:"required"`  //预算位名称
   SceneId  *int64 `json:"scene_id" form:"scene_id" gorm:"column:scene_id;" binding:"required"`  //广告类型
   DspSlotCode  *string `json:"dsp_slot_code" form:"dsp_slot_code" gorm:"column:dsp_slot_code;" binding:"required"`  //预算方广告位
+  OsType  *int64 `json:"os_type" form:"os_type" gorm:"column:os_type;"`  //操作系统类型
   DspAppKey  *string `json:"dsp_app_key" form:"dsp_app_key" gorm:"column:dsp_app_key;"`  //预算方APPKEY
   DspAppSercet  *string `json:"dsp_app_secret" form:"dsp_app_secret" gorm:"column:dsp_app_secret;"`  //预算方APPSECRET
   DspAppId  *string `json:"dsp_app_id" form:"dsp_app_id" gorm:"column:dsp_app_id;"`  //预算APPID

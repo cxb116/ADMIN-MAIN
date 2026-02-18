@@ -78,6 +78,12 @@
 
             <el-table-column align="left" label="预算方广告位" prop="dsp_slot_code" width="120" />
 
+            <el-table-column align="left" label="操作系统类型" prop="os_type" width="120">
+    <template #default="scope">
+    {{ filterDict(scope.row.os_type, osTypeOptions) }}
+    </template>
+</el-table-column>
+
             <el-table-column align="left" label="预算方APPKEY" prop="dsp_app_key" width="120" />
 
             <el-table-column align="left" label="预算方APPSECRET" prop="dsp_app_secret" width="120" />
@@ -153,6 +159,16 @@
 </el-form-item>
             <el-form-item label="预算方广告位:" prop="dsp_slot_code">
     <el-input v-model="formData.dsp_slot_code" :clearable="true" placeholder="请输入预算方广告位" />
+</el-form-item>
+            <el-form-item label="操作系统类型:" prop="os_type">
+    <el-select v-model="formData.os_type" placeholder="请选择操作系统类型" :clearable="true" style="width: 100%">
+      <el-option
+        v-for="item in osTypeOptions"
+        :key="item.value"
+        :label="item.label"
+        :value="item.value"
+      />
+    </el-select>
 </el-form-item>
             <el-form-item label="广告类型:" prop="scene_id">
     <el-select v-model="formData.scene_id" placeholder="请选择广告类型" :clearable="true" :disabled="type === 'update'" style="width: 100%">
@@ -475,6 +491,9 @@
                     <el-descriptions-item label="预算方广告位">
     {{ detailForm.dsp_slot_code }}
 </el-descriptions-item>
+                    <el-descriptions-item label="操作系统类型">
+    {{ filterDict(detailForm.os_type, osTypeOptions) }}
+</el-descriptions-item>
                     <el-descriptions-item label="预算方APPKEY">
     {{ detailForm.dsp_app_key }}
 </el-descriptions-item>
@@ -562,12 +581,14 @@ const showAllQuery = ref(false)
 // 自动化生成的字典（可能为空）以及字段
 const pay_typeOptions = ref([])
 const sceneOptions = ref([])
+const osTypeOptions = ref([])              // 操作系统类型选项
 const launchStrategyOptions = ref([])      // 投放策略选项
 const directionTypeOptions = ref([])       // 定向类型选项（人群、地域、品牌）
 const formData = ref({
             name: '',
             scene_id: undefined,
             dsp_slot_code: '',
+            os_type: 0,
             dsp_app_key: '',
             dsp_app_secret: '',
             dsp_app_id: '',
@@ -712,6 +733,12 @@ const setOptions = async () =>{
     const sceneRes = await dspAdSceneList()
     if (sceneRes.code === 0) {
         sceneOptions.value = sceneRes.data
+    }
+
+    // 获取操作系统类型数据字典
+    const osTypeRes = await getDictionaryTreeListByType({ type: 'os_type' })
+    if (osTypeRes.code === 0) {
+        osTypeOptions.value = osTypeRes.data.list
     }
 
     // 获取级联选择器数据
@@ -927,6 +954,7 @@ const closeDialog = () => {
         name: '',
         scene_id: undefined,
         dsp_slot_code: '',
+        os_type: 0,
         dsp_app_key: '',
         dsp_app_secret: '',
         dsp_app_id: '',
