@@ -982,6 +982,11 @@ const enterDialog = async () => {
                formData.value.dsp_product_id = Number(formData.value.cascaderValue[1])
              }
 
+             // 将os_type转换为数字类型
+             if (formData.value.os_type !== undefined && formData.value.os_type !== null) {
+               formData.value.os_type = Number(formData.value.os_type)
+             }
+
               let res
               const isNew = type.value === 'create'
 
