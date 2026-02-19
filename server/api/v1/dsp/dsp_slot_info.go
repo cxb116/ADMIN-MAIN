@@ -21,7 +21,7 @@ type DspSlotInfoApi struct {}
 // @Accept application/json
 // @Produce application/json
 // @Param data body dsp.DspSlotInfo true "创建预算位管理"
-// @Success 200 {object} response.Response{msg=string} "创建成功"
+// @Success 200 {object} response.Response{data=dsp.DspSlotInfo,msg=string} "创建成功"
 // @Router /dspSlotInfo/createDspSlotInfo [post]
 func (dspSlotInfoApi *DspSlotInfoApi) CreateDspSlotInfo(c *gin.Context) {
     // 创建业务用Context
@@ -39,7 +39,8 @@ func (dspSlotInfoApi *DspSlotInfoApi) CreateDspSlotInfo(c *gin.Context) {
 		response.FailWithMessage("创建失败:" + err.Error(), c)
 		return
 	}
-    response.OkWithMessage("创建成功", c)
+    // 返回创建的记录，包含 ID，供前端后续调用 batchSave 使用
+    response.OkWithData(dspSlotInfo, c)
 }
 
 // DeleteDspSlotInfo 删除预算位管理

@@ -453,6 +453,19 @@
                 </template>
               </el-table-column>
 
+              <el-table-column v-if="formData.dsp_pay_type === '2'" label="底价" min-width="150">
+                <template #default="scope">
+                  <el-input-number
+                    v-model="scope.row.floorPrice"
+                    :min="0"
+                    :step="0.01"
+                    :precision="2"
+                    placeholder="请输入底价"
+                    style="width: 120px"
+                  />
+                </template>
+              </el-table-column>
+
               <el-table-column label="流量权重" min-width="200">
                 <template #default="scope">
                   <el-input-number
@@ -548,9 +561,6 @@ import {
 import {
   Cascader
 } from '@/api/dsp/dspProduct'
-import {
-  getDictionaryTreeListByType
-} from '@/api/sysDictionaryDetail'
 import {getDictionaryTreeListByType as dspAdSceneList} from '@/api/dsp/dspAdScene'
 import { batchSaveDspLaunch, getDspLaunchByDspSlotId } from '@/api/dsp/dspLaunch'
 import { getSsp_ad_slotList } from '@/api/ssp/sspAdSlot'
@@ -728,7 +738,7 @@ const handleCurrentChange = (val) => {
 // 获取需要的字典 可为空 按需保留
 const setOptions = async () =>{
     pay_typeOptions.value = await getDictFunc('pay_type')
-
+    console.log(pay_typeOptions.value)
     // 获取广告场景数据
     const sceneRes = await dspAdSceneList()
     if (sceneRes.code === 0) {
@@ -736,7 +746,7 @@ const setOptions = async () =>{
     }
 
     // 获取操作系统类型数据字典
-    const osTypeRes = await getDictionaryTreeListByType({ type: 'os_type' })
+    const osTypeRes = await getDictFunc('os_type')
     if (osTypeRes.code === 0) {
         osTypeOptions.value = osTypeRes.data.list
     }
@@ -748,13 +758,13 @@ const setOptions = async () =>{
     }
 
     // 加载投放策略数据字典
-    const launchStrategyRes = await getDictionaryTreeListByType({ type: 'launch_strategy' })
+    const launchStrategyRes = await getDictFunc('launch_strategy')
     if (launchStrategyRes.code === 0) {
         launchStrategyOptions.value = launchStrategyRes.data.list
     }
 
     // 加载定向类型数据字典（人群、地域、品牌定向共享）
-    const directionTypeRes = await getDictionaryTreeListByType({ type: 'direction_type' })
+    const directionTypeRes = await getDictFunc('direction_type')
     if (directionTypeRes.code === 0) {
         directionTypeOptions.value = directionTypeRes.data.list
     }
