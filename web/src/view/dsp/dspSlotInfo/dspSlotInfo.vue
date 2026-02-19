@@ -891,7 +891,7 @@ const updateDspSlotInfoFunc = async(row) => {
               dspSlotId: row.ID,
               sspSlotId: item.sspSlotId,
               trafficWeight: item.trafficWeight ? Number(item.trafficWeight) : 0,
-              floorPrice: item.floorPrice || 0,
+              floorPrice: item.floorPrice ? item.floorPrice / 100 : 0,  // 后端存储的是分，前端显示元
               launchStrategy: item.launchStrategy || '',
               ipLimit: item.ipLimit || undefined,
               logCaptureAt: item.logCaptureAt || 300,
@@ -1023,7 +1023,7 @@ const enterDialog = async () => {
                       dspSlotId: dspSlotId,
                       sspSlotId: item.sspSlotId,
                       trafficWeight: String(item.trafficWeight),
-                      floorPrice: item.floorPrice
+                      floorPrice: Math.round(item.floorPrice * 100)  // 前端是元，后端存储分
                     }
 
                     // 添加可选字段（只添加有值的字段）
