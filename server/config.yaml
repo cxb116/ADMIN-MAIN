@@ -249,3 +249,12 @@ zap:
     show-line: true
     log-in-console: true
     retention-day: -1
+# etcd配置
+etcd:
+    enabled: true
+    endpoints:
+        - 117.72.67.186:2379
+    prefix: /dsp/config
+    username: ""
+    password: ""
+    timeout: 5

@@ -8,28 +8,103 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/dsp"
 	dspReq "github.com/flipped-aurora/gin-vue-admin/server/model/dsp/request"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type DspLaunchService struct{}
 
+// syncToEtcd 同步到 etcd
+func (s *DspLaunchService) syncToEtcd(ctx context.Context, launch *dsp.DspLaunch, action string) error {
+	etcdSync := NewEtcdSyncService()
+
+	if !etcdSync.IsEnabled() {
+		return nil // etcd 未启用，跳过同步
+	}
+
+	// 生成 key (Id 是 *uint 类型)
+	id := int64(0)
+	if launch.Id != nil {
+		id = int64(*launch.Id)
+	}
+	key := etcdSync.generateKey("launch", action, id)
+
+	// 删除操作只需要发送事件
+	if action == "delete" {
+		if err := etcdSync.Delete(ctx, key); err != nil {
+			global.GVA_LOG.Error("同步删除到 etcd 失败",
+				zap.Any("id", launch.Id),
+				zap.Error(err))
+			return err
+		}
+		return nil
+	}
+
+	// 添加/更新操作，发送完整数据
+	if err := etcdSync.Put(ctx, key, launch); err != nil {
+		global.GVA_LOG.Error("同步到 etcd 失败",
+			zap.Any("id", launch.Id),
+			zap.String("action", action),
+			zap.Error(err))
+		return err
+	}
+
+	return nil
+}
+
 // CreateDspLaunch 创建预算投放表记录
 // Author [yourname](https://github.com/yourname)
 func (dspLaunchService *DspLaunchService) CreateDspLaunch(ctx context.Context, dspLaunch *dsp.DspLaunch) (err error) {
+	// 1. 写入数据库
 	err = global.GVA_DB.Create(dspLaunch).Error
-	return err
+	if err != nil {
+		return err
+	}
+
+	// 2. 同步到 etcd
+	if err := dspLaunchService.syncToEtcd(ctx, dspLaunch, "add"); err != nil {
+		// 记录日志但不回滚数据库
+		global.GVA_LOG.Warn("同步到 etcd 失败，但数据库已写入")
+	}
+
+	return nil
 }
 
 // DeleteDspLaunch 删除预算投放表记录
 // Author [yourname](https://github.com/yourname)
 func (dspLaunchService *DspLaunchService) DeleteDspLaunch(ctx context.Context, id string) (err error) {
+	// 1. 先查询获取完整数据（etcd 需要）
+	var launch dsp.DspLaunch
+	err = global.GVA_DB.Where("id = ?", id).First(&launch).Error
+	if err != nil {
+		return err
+	}
+
+	// 2. 软删除数据库
 	err = global.GVA_DB.Delete(&dsp.DspLaunch{}, "id = ?", id).Error
-	return err
+	if err != nil {
+		return err
+	}
+
+	// 3. 同步到 etcd
+	if err := dspLaunchService.syncToEtcd(ctx, &launch, "delete"); err != nil {
+		global.GVA_LOG.Warn("同步删除到 etcd 失败，但数据库已删除")
+	}
+
+	return nil
 }
 
 // DeleteDspLaunchByIds 批量删除预算投放表记录
 // Author [yourname](https://github.com/yourname)
 func (dspLaunchService *DspLaunchService) DeleteDspLaunchByIds(ctx context.Context, ids []string) (err error) {
+	// 批量删除时，循环同步到 etcd
+	for _, id := range ids {
+		var launch dsp.DspLaunch
+		if global.GVA_DB.Where("id = ?", id).First(&launch).Error == nil {
+			dspLaunchService.syncToEtcd(ctx, &launch, "delete")
+		}
+	}
+
 	err = global.GVA_DB.Delete(&[]dsp.DspLaunch{}, "id in ?", ids).Error
 	return err
 }
@@ -37,8 +112,18 @@ func (dspLaunchService *DspLaunchService) DeleteDspLaunchByIds(ctx context.Conte
 // UpdateDspLaunch 更新预算投放表记录
 // Author [yourname](https://github.com/yourname)
 func (dspLaunchService *DspLaunchService) UpdateDspLaunch(ctx context.Context, dspLaunch dsp.DspLaunch) (err error) {
+	// 1. 更新数据库
 	err = global.GVA_DB.Model(&dsp.DspLaunch{}).Where("id = ?", dspLaunch.Id).Updates(&dspLaunch).Error
-	return err
+	if err != nil {
+		return err
+	}
+
+	// 2. 同步到 etcd
+	if err := dspLaunchService.syncToEtcd(ctx, &dspLaunch, "update"); err != nil {
+		global.GVA_LOG.Warn("同步到 etcd 失败，但数据库已更新")
+	}
+
+	return nil
 }
 
 // GetDspLaunch 根据id获取预算投放表记录
@@ -137,7 +222,24 @@ func (dspLaunchService *DspLaunchService) BatchSaveDspLaunch(ctx context.Context
 		return nil
 	})
 
-	return err
+	if err != nil {
+		return err
+	}
+
+	// 事务成功后，同步到 etcd
+	// 注意：launches 的 Id 字段已在插入后被 GORM 填充
+	for _, launches := range groupMap {
+		for i := range launches {
+			// 同步到 etcd，使用 "add" 操作
+			if syncErr := dspLaunchService.syncToEtcd(ctx, &launches[i], "add"); syncErr != nil {
+				global.GVA_LOG.Warn("同步到 etcd 失败，但数据库已写入",
+					zap.Any("dsp_slot_id", launches[i].DspSlotId),
+					zap.Error(syncErr))
+			}
+		}
+	}
+
+	return nil
 }
 
 // GetDspLaunchByDspSlotId 根据预算位ID获取所有配置

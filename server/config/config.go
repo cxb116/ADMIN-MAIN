@@ -37,4 +37,7 @@ type Server struct {
 
 	// MCP配置
 	MCP MCP `mapstructure:"mcp" json:"mcp" yaml:"mcp"`
+
+	// etcd配置
+	Etcd Etcd `mapstructure:"etcd" json:"etcd" yaml:"etcd"`
 }
