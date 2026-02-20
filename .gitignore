@@ -44,3 +44,4 @@ web/pnpm-lock.yaml
 .claude
 docs
 CLAUDE.md
+.playwright-mcp
