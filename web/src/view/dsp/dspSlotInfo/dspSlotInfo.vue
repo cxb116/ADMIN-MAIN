@@ -881,7 +881,7 @@ const updateDspSlotInfoFunc = async(row) => {
               sspSlotId: item.sspSlotId,
               trafficWeight: item.trafficWeight ? Number(item.trafficWeight) : 0,
               floorPrice: item.floorPrice ? item.floorPrice / 100 : 0,  // 后端存储的是分，前端显示元
-              launchStrategy: item.launchStrategy || '',
+              launchStrategy: item.launchStrategy ? Number(item.launchStrategy) : undefined,
               ipLimit: item.ipLimit || undefined,
               logCaptureAt: item.logCaptureAt || 300,
               trackSchwarz: item.trackSchwarz || '',
@@ -1011,12 +1011,12 @@ const enterDialog = async () => {
                     const saveItem = {
                       dspSlotId: dspSlotId,
                       sspSlotId: item.sspSlotId,
-                      trafficWeight: String(item.trafficWeight),
+                      trafficWeight: Number(item.trafficWeight),
                       floorPrice: Math.round(item.floorPrice * 100)  // 前端是元，后端存储分
                     }
 
                     // 添加可选字段（只添加有值的字段）
-                    if (item.launchStrategy) saveItem.launchStrategy = item.launchStrategy
+                    if (item.launchStrategy) saveItem.launchStrategy = Number(item.launchStrategy)
                     if (item.ipLimit !== undefined && item.ipLimit !== null) saveItem.ipLimit = item.ipLimit
                     if (item.logCaptureAt !== undefined && item.logCaptureAt !== null) saveItem.logCaptureAt = item.logCaptureAt
                     if (item.trackSchwarz) saveItem.trackSchwarz = item.trackSchwarz
