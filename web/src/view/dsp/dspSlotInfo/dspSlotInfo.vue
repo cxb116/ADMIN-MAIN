@@ -738,7 +738,6 @@ const handleCurrentChange = (val) => {
 // 获取需要的字典 可为空 按需保留
 const setOptions = async () =>{
     pay_typeOptions.value = await getDictFunc('pay_type')
-    console.log(pay_typeOptions.value)
     // 获取广告场景数据
     const sceneRes = await dspAdSceneList()
     if (sceneRes.code === 0) {
@@ -746,10 +745,7 @@ const setOptions = async () =>{
     }
 
     // 获取操作系统类型数据字典
-    const osTypeRes = await getDictFunc('os_type')
-    if (osTypeRes.code === 0) {
-        osTypeOptions.value = osTypeRes.data.list
-    }
+    osTypeOptions.value = (await getDictFunc('os_type')).map(x=>({...x,value:+x.value}))
 
     // 获取级联选择器数据
     const cascaderRes = await Cascader()
@@ -758,16 +754,9 @@ const setOptions = async () =>{
     }
 
     // 加载投放策略数据字典
-    const launchStrategyRes = await getDictFunc('launch_strategy')
-    if (launchStrategyRes.code === 0) {
-        launchStrategyOptions.value = launchStrategyRes.data.list
-    }
-
+    launchStrategyOptions.value = (await getDictFunc('launch_strategy')).map(x=>({...x,value:+x.value}))
     // 加载定向类型数据字典（人群、地域、品牌定向共享）
-    const directionTypeRes = await getDictFunc('direction_type')
-    if (directionTypeRes.code === 0) {
-        directionTypeOptions.value = directionTypeRes.data.list
-    }
+    directionTypeOptions.value = (await getDictFunc('direction_type')).map(x=>({...x,value:+x.value}))
 
     // 数据加载完成后，再加载表格数据
     await getTableData()
