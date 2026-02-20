@@ -13,11 +13,12 @@ type DspSlotInfo struct {
   DspSlotCode  *string `json:"dsp_slot_code" form:"dsp_slot_code" gorm:"column:dsp_slot_code;" binding:"required"`  //预算方广告位
   OsType  *int64 `json:"os_type" form:"os_type" gorm:"column:os_type;"`  //操作系统类型
   DspAppKey  *string `json:"dsp_app_key" form:"dsp_app_key" gorm:"column:dsp_app_key;"`  //预算方APPKEY
-  DspAppSercet  *string `json:"dsp_app_secret" form:"dsp_app_secret" gorm:"column:dsp_app_secret;"`  //预算方APPSECRET
+  DspAppSecret  *string `json:"dsp_app_secret" form:"dsp_app_secret" gorm:"column:dsp_app_secret;"`  //预算方APPSECRET
   DspAppId  *string `json:"dsp_app_id" form:"dsp_app_id" gorm:"column:dsp_app_id;"`  //预算APPID
   DspAppPkg  *string `json:"dsp_app_pkg" form:"dsp_app_pkg" gorm:"column:dsp_app_pkg;"`  //预算方应用包名
   DspAppVer  *string `json:"dsp_app_ver" form:"dsp_app_ver" gorm:"column:dsp_app_ver;"`  //应用版本号
   DspAppStoreVer  *string `json:"dsp_app_store_ver" form:"dsp_app_store_ver" gorm:"column:dsp_app_store_ver;"`  //应用商店版本号
+  PriceEncryptKey  *string `json:"price_encrypt_key" form:"price_encrypt_key" gorm:"column:price_encrypt_key;"`  //价格加密密钥
   DspAppStoreLink  *string `json:"dsp_app_store_link" form:"dsp_app_store_link" gorm:"column:dsp_app_store_link;"`  //应用商店地址
   DspPayType  *string `json:"dsp_pay_type" form:"dsp_pay_type" gorm:"column:dsp_pay_type;"`  //结算方式
   DspDealRatio  *int64 `json:"dsp_deal_ratio" form:"dsp_deal_ratio" gorm:"column:dsp_deal_ratio;"`  //成交价系数

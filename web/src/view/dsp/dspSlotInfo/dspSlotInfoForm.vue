@@ -33,6 +33,9 @@
         <el-form-item label="应用商店地址:" prop="dsp_app_store_link">
     <el-input v-model="formData.dsp_app_store_link" :clearable="true" placeholder="请输入应用商店地址" />
 </el-form-item>
+        <el-form-item label="价格加密密钥:" prop="price_encrypt_key">
+    <el-input v-model="formData.price_encrypt_key" :clearable="true" placeholder="请输入价格加密密钥" />
+</el-form-item>
         <el-form-item label="结算方式:" prop="dsp_pay_type">
     <el-tree-select v-model="formData.dsp_pay_type" placeholder="请选择结算方式" :data="pay_typeOptions" style="width:100%" filterable :clearable="true" check-strictly></el-tree-select>
 </el-form-item>
@@ -106,6 +109,7 @@ const formData = ref({
             dsp_app_ver: '',
             dsp_app_store_ver: '',
             dsp_app_store_link: '',
+            price_encrypt_key: '',
             dsp_pay_type: '',
             dsp_deal_ratio: undefined,
             dsp_company_id: undefined,

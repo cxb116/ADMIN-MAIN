@@ -4,10 +4,10 @@
     <div class="gva-form-box">
       <el-form :model="formData" ref="elFormRef" label-position="right" :rules="rule" label-width="80px">
         <el-form-item label="流量权重:" prop="trafficWeight">
-    <el-input v-model="formData.trafficWeight" :clearable="true" placeholder="请输入流量权重" />
+    <el-input v-model.number="formData.trafficWeight" :clearable="true" placeholder="请输入流量权重" />
 </el-form-item>
         <el-form-item label="投放策略:" prop="launchStrategy">
-    <el-select multiple v-model="formData.launchStrategy" placeholder="请选择投放策略" filterable style="width:100%" :clearable="true">
+    <el-select v-model="formData.launchStrategy" placeholder="请选择投放策略" filterable style="width:100%" :clearable="true">
         <el-option v-for="(item,key) in launch_strategyOptions" :key="key" :label="item.label" :value="item.value" />
     </el-select>
 </el-form-item>
@@ -92,8 +92,8 @@ const type = ref('')
 const launch_strategyOptions = ref([])
 const direction_typeOptions = ref([])
 const formData = ref({
-            trafficWeight: '',
-            launchStrategy: [],
+            trafficWeight: undefined,
+            launchStrategy: undefined,
             floorPrice: undefined,
             ipLimit: undefined,
             logCaptureAt: undefined,
