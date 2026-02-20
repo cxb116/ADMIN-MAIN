@@ -1061,9 +1061,9 @@ const saveConfig = async () => {
   btnLoading.value = true
 
   try {
-    // 构建保存数据
+    // 构建保存数据，包含完整的广告位信息和新的配置
     const saveData = {
-      ID: currentSlotInfo.value.ID,
+      ...currentSlotInfo.value,
       flow_config: flowSlots.value.map(item => ({
         ad_slot_id: item.ad_slot_id,
         weight: item.weight
