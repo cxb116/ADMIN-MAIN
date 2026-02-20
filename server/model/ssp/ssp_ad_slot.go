@@ -20,6 +20,7 @@ type Ssp_ad_slot struct {
 	Width           *int64  `json:"width" form:"width" gorm:"column:width;"`                                         //广告位宽
 	AdImage         *string `json:"ad_image" form:"ad_image" gorm:"column:ad_image;"`                                //广告位图片
 	Enable          *string `json:"enable" form:"enable" gorm:"column:enable;" binding:"required"`                   //是否启用
+	FlowConfig      interface{} `json:"flow_config" form:"flow_config" gorm:"column:flow_config;serializer:json"`    //流量配置
 }
 
 type Ssp_ad_slot_res struct {

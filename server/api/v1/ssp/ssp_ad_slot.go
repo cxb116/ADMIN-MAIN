@@ -100,13 +100,31 @@ func (adSlotApi *Ssp_ad_slotApi) UpdateSsp_ad_slot(c *gin.Context) {
     // 从ctx获取标准context进行业务行为
     ctx := c.Request.Context()
 
-	var adSlot ssp.Ssp_ad_slot
+	var adSlot sspReq.Ssp_ad_slotUpdate
 	err := c.ShouldBindJSON(&adSlot)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	err = adSlotService.UpdateSsp_ad_slot(ctx,adSlot)
+
+	// 转换为 Ssp_ad_slot 类型以兼容 Service 层
+	var adSlotModel ssp.Ssp_ad_slot
+	adSlotModel.GVA_MODEL = adSlot.GVA_MODEL
+	adSlotModel.MediaId = adSlot.MediaId
+	adSlotModel.AppId = adSlot.AppId
+	adSlotModel.Name = adSlot.Name
+	adSlotModel.NameAlise = adSlot.NameAlise
+	adSlotModel.SceneId = adSlot.SceneId
+	adSlotModel.SspPayType = adSlot.SspPayType
+	adSlotModel.SspDealRatio = adSlot.SspDealRatio
+	adSlotModel.InteractionType = adSlot.InteractionType
+	adSlotModel.Height = adSlot.Height
+	adSlotModel.Width = adSlot.Width
+	adSlotModel.AdImage = adSlot.AdImage
+	adSlotModel.Enable = adSlot.Enable
+	adSlotModel.FlowConfig = adSlot.FlowConfig
+
+	err = adSlotService.UpdateSsp_ad_slot(ctx,adSlotModel)
 	if err != nil {
         global.GVA_LOG.Error("更新失败!", zap.Error(err))
 		response.FailWithMessage("更新失败:" + err.Error(), c)
