@@ -149,7 +149,7 @@
             />
         </div>
     </div>
-    <el-drawer destroy-on-close :size="appStore.drawerSizeMax" v-model="dialogFormVisibleConfig" :show-close="false" :before-close="closeConfigDialog">
+    <el-drawer destroy-on-close :size="appStore.drawerSize" v-model="dialogFormVisibleConfig" :show-close="false" :before-close="closeConfigDialog">
        <template #header>
               <div class="flex justify-between items-center">
                 <span class="text-lg">流量分流配置</span>
@@ -314,7 +314,7 @@
             </el-card>
           </div>
     </el-drawer>
-    <el-drawer destroy-on-close :size="appStore.drawerSizeMax" v-model="dialogFormVisible" :show-close="false" :before-close="closeDialog">
+    <el-drawer destroy-on-close :size="appStore.drawerSize" v-model="dialogFormVisible" :show-close="false" :before-close="closeDialog">
        <template #header>
               <div class="flex justify-between items-center">
                 <span class="text-lg">{{type==='create'?'新增':'编辑'}}</span>
