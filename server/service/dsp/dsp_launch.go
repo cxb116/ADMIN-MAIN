@@ -98,12 +98,10 @@ func (dspLaunchService *DspLaunchService) BatchSaveDspLaunch(ctx context.Context
 	for dspSlotId, launches := range groupMap {
 		var totalWeight float64
 		for _, launch := range launches {
-			// traffic_weight 是字符串，需要转换
-			weight := 0.0
+			// traffic_weight 是 int32 类型
 			if launch.TrafficWeight != nil {
-				fmt.Sscanf(*launch.TrafficWeight, "%f", &weight)
+				totalWeight += float64(*launch.TrafficWeight)
 			}
-			totalWeight += weight
 		}
 
 		if totalWeight > 100 {
