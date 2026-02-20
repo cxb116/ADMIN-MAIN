@@ -46,7 +46,7 @@ func etcdClient() {
 
 	// 如果未启用，跳过初始化
 	if !etcdCfg.Enabled {
-		global.GVA_LOG.Info("etcd 未启用，跳过初始化")
+		logInfo("etcd 未启用，跳过初始化")
 		return
 	}
 
@@ -59,9 +59,7 @@ func etcdClient() {
 	})
 
 	if err != nil {
-		global.GVA_LOG.Error("etcd 初始化失败",
-			zap.String("endpoints", fmt.Sprintf("%v", etcdCfg.Endpoints)),
-			zap.Error(err))
+		logError(fmt.Sprintf("etcd 初始化失败: %v, endpoints: %v", err, etcdCfg.Endpoints))
 		// 不影响服务启动，只记录日志
 		return
 	}
@@ -72,11 +70,36 @@ func etcdClient() {
 
 	_, err = client.Get(ctx, "test")
 	if err != nil && err != context.DeadlineExceeded {
-		global.GVA_LOG.Warn("etcd 连接测试失败，服务将继续运行", zap.Error(err))
+		logWarn(fmt.Sprintf("etcd 连接测试失败，服务将继续运行: %v", err))
 	}
 
 	global.GVA_ETCD = client
-	global.GVA_LOG.Info("etcd 初始化成功",
-		zap.String("endpoints", fmt.Sprintf("%v", etcdCfg.Endpoints)),
-		zap.String("prefix", etcdCfg.Prefix))
+	logInfo(fmt.Sprintf("etcd 初始化成功, endpoints: %v, prefix: %s", etcdCfg.Endpoints, etcdCfg.Prefix))
+}
+
+// logInfo 安全地记录信息日志（检查 logger 是否已初始化）
+func logInfo(msg string, fields ...zap.Field) {
+	if global.GVA_LOG != nil {
+		global.GVA_LOG.Info(msg, fields...)
+	} else {
+		fmt.Println("[INFO]", msg)
+	}
+}
+
+// logError 安全地记录错误日志（检查 logger 是否已初始化）
+func logError(msg string, fields ...zap.Field) {
+	if global.GVA_LOG != nil {
+		global.GVA_LOG.Error(msg, fields...)
+	} else {
+		fmt.Println("[ERROR]", msg)
+	}
+}
+
+// logWarn 安全地记录警告日志（检查 logger 是否已初始化）
+func logWarn(msg string, fields ...zap.Field) {
+	if global.GVA_LOG != nil {
+		global.GVA_LOG.Warn(msg, fields...)
+	} else {
+		fmt.Println("[WARN]", msg)
+	}
 }
