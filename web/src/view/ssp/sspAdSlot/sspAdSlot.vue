@@ -332,12 +332,61 @@
                 :data="dspInfoList"
                 border
                 style="width: 100%;"
+                row-key="name"
               >
+                <el-table-column type="expand">
+                  <template #default="{ row }">
+                    <div style="padding: 20px;">
+                      <el-descriptions :column="3" border>
+                        <el-descriptions-item label="流量权重">
+                          {{ row.trafficWeight || '-' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="IP限流次数">
+                          {{ row.ipLimit || '-' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="捕获日志时长(秒)">
+                          {{ row.logCaptureAt || '-' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="上报黑名单" :span="3">
+                          {{ row.trackSchwarz || '-' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="请求次数(次/天)">
+                          {{ row.req || '-' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="展现次数">
+                          {{ row.ims || '-' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="点击次数">
+                          {{ row.clk || '-' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="投放时段">
+                          {{ row.launchTime === 1 ? '全时段' : row.launchTime === 2 ? '自定义' : '-' }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="投放策略">
+                          {{ filterDict(row.launchStrategy, launchStrategyOptions) }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="人群定向">
+                          {{ filterDict(row.crowdDirection, directionTypeOptions) }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="地域定向">
+                          {{ filterDict(row.regionDirection, directionTypeOptions) }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="品牌定向">
+                          {{ filterDict(row.brandDirection, directionTypeOptions) }}
+                        </el-descriptions-item>
+                        <el-descriptions-item label="备注" :span="3">
+                          {{ row.remark || '-' }}
+                        </el-descriptions-item>
+                      </el-descriptions>
+                    </div>
+                  </template>
+                </el-table-column>
+
                 <el-table-column label="序号" width="60" align="center">
                   <template #default="scope">{{ scope.$index + 1 }}</template>
                 </el-table-column>
 
-                <el-table-column label="投放名称" prop="name" min-width="150" />
+                <el-table-column label="投放名称" prop="name" min-width="200" />
 
                 <el-table-column label="结算方式" prop="dspPayType" width="120">
                   <template #default="scope">
@@ -345,33 +394,9 @@
                   </template>
                 </el-table-column>
 
-                <el-table-column label="底价" prop="floorPrice" width="100">
+                <el-table-column label="底价" prop="floorPrice" width="120">
                   <template #default="scope">
-                    {{ scope.row.dspPayType === '2' && scope.row.floorPrice ? (scope.row.floorPrice / 100).toFixed(2) : '-' }}
-                  </template>
-                </el-table-column>
-
-                <el-table-column label="投放策略" prop="launchStrategy" width="120">
-                  <template #default="scope">
-                    {{ filterDict(scope.row.launchStrategy, launchStrategyOptions) }}
-                  </template>
-                </el-table-column>
-
-                <el-table-column label="人群定向" prop="crowdDirection" width="120">
-                  <template #default="scope">
-                    {{ filterDict(scope.row.crowdDirection, directionTypeOptions) }}
-                  </template>
-                </el-table-column>
-
-                <el-table-column label="地域定向" prop="regionDirection" width="120">
-                  <template #default="scope">
-                    {{ filterDict(scope.row.regionDirection, directionTypeOptions) }}
-                  </template>
-                </el-table-column>
-
-                <el-table-column label="品牌定向" prop="brandDirection" width="120">
-                  <template #default="scope">
-                    {{ filterDict(scope.row.brandDirection, directionTypeOptions) }}
+                    {{ scope.row.dspPayType === '2' && scope.row.floorPrice ? scope.row.floorPrice : '-' }}
                   </template>
                 </el-table-column>
               </el-table>
