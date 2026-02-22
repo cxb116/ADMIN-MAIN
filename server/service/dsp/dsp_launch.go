@@ -198,6 +198,17 @@ func (dspLaunchService *DspLaunchService) BatchSaveDspLaunch(ctx context.Context
 		}
 	}
 
+	// 在事务前查询现有配置，用于 etcd 删除通知
+	oldLaunchesMap := make(map[int32][]dsp.DspLaunch)
+	for dspSlotId := range groupMap {
+		var oldLaunches []dsp.DspLaunch
+		if err := global.GVA_DB.Where("dsp_slot_id = ? AND deleted_at IS NULL", dspSlotId).Find(&oldLaunches).Error; err != nil {
+			global.GVA_LOG.Warn("查询旧配置失败，继续执行", zap.Error(err))
+		} else {
+			oldLaunchesMap[dspSlotId] = oldLaunches
+		}
+	}
+
 	// 使用事务批量保存
 	err = global.GVA_DB.Transaction(func(tx *gorm.DB) error {
 		for dspSlotId, launches := range groupMap {
@@ -228,6 +239,20 @@ func (dspLaunchService *DspLaunchService) BatchSaveDspLaunch(ctx context.Context
 
 	// 事务成功后，同步到 etcd
 	// 注意：launches 的 Id 字段已在插入后被 GORM 填充
+
+	// 先发送旧配置的删除事件
+	for dspSlotId, oldLaunches := range oldLaunchesMap {
+		for i := range oldLaunches {
+			// 发送删除事件到 etcd（value 为空）
+			if syncErr := dspLaunchService.syncToEtcd(ctx, &oldLaunches[i], "delete"); syncErr != nil {
+				global.GVA_LOG.Warn("同步删除到 etcd 失败",
+					zap.Any("id", oldLaunches[i].Id),
+					zap.Int32("dsp_slot_id", dspSlotId),
+					zap.Error(syncErr))
+			}
+		}
+	}
+
 	for _, launches := range groupMap {
 		for i := range launches {
 			// 同步到 etcd，使用 "add" 操作
