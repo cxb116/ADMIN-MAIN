@@ -337,47 +337,196 @@
                 <el-table-column type="expand">
                   <template #default="{ row }">
                     <div style="padding: 20px;">
-                      <el-descriptions :column="3" border>
-                        <el-descriptions-item label="流量权重">
-                          {{ row.trafficWeight || '-' }}
-                        </el-descriptions-item>
-                        <el-descriptions-item label="IP限流次数">
-                          {{ row.ipLimit || '-' }}
-                        </el-descriptions-item>
-                        <el-descriptions-item label="捕获日志时长(秒)">
-                          {{ row.logCaptureAt || '-' }}
-                        </el-descriptions-item>
-                        <el-descriptions-item label="上报黑名单" :span="3">
-                          {{ row.trackSchwarz || '-' }}
-                        </el-descriptions-item>
-                        <el-descriptions-item label="请求次数(次/天)">
-                          {{ row.req || '-' }}
-                        </el-descriptions-item>
-                        <el-descriptions-item label="展现次数">
-                          {{ row.ims || '-' }}
-                        </el-descriptions-item>
-                        <el-descriptions-item label="点击次数">
-                          {{ row.clk || '-' }}
-                        </el-descriptions-item>
-                        <el-descriptions-item label="投放时段">
-                          {{ row.launchTime === 1 ? '全时段' : row.launchTime === 2 ? '自定义' : '-' }}
-                        </el-descriptions-item>
-                        <el-descriptions-item label="投放策略">
-                          {{ filterDict(row.launchStrategy, launchStrategyOptions) }}
-                        </el-descriptions-item>
-                        <el-descriptions-item label="人群定向">
-                          {{ filterDict(row.crowdDirection, directionTypeOptions) }}
-                        </el-descriptions-item>
-                        <el-descriptions-item label="地域定向">
-                          {{ filterDict(row.regionDirection, directionTypeOptions) }}
-                        </el-descriptions-item>
-                        <el-descriptions-item label="品牌定向">
-                          {{ filterDict(row.brandDirection, directionTypeOptions) }}
-                        </el-descriptions-item>
-                        <el-descriptions-item label="备注" :span="3">
-                          {{ row.remark || '-' }}
-                        </el-descriptions-item>
-                      </el-descriptions>
+                      <el-form :model="row" label-width="120px">
+                        <el-row :gutter="20">
+                          <el-col :span="8">
+                            <el-form-item label="流量权重">
+                              <el-input-number
+                                v-model="row.trafficWeight"
+                                :min="0"
+                                :max="100"
+                                :step="1"
+                                style="width: 100%"
+                              />
+                            </el-form-item>
+                          </el-col>
+                          <el-col :span="8">
+                            <el-form-item label="IP限流次数">
+                              <el-input-number
+                                v-model="row.ipLimit"
+                                :min="0"
+                                placeholder="不限流"
+                                style="width: 100%"
+                              />
+                            </el-form-item>
+                          </el-col>
+                          <el-col :span="8">
+                            <el-form-item label="捕获日志时长(秒)">
+                              <el-input-number
+                                v-model="row.logCaptureAt"
+                                :min="0"
+                                placeholder="默认300"
+                                style="width: 100%"
+                              />
+                            </el-form-item>
+                          </el-col>
+                        </el-row>
+
+                        <el-row :gutter="20">
+                          <el-col :span="24">
+                            <el-form-item label="上报黑名单">
+                              <el-input
+                                v-model="row.trackSchwarz"
+                                placeholder="黑名单IP或域名"
+                              />
+                            </el-form-item>
+                          </el-col>
+                        </el-row>
+
+                        <el-row :gutter="20">
+                          <el-col :span="8">
+                            <el-form-item label="请求次数(次/天)">
+                              <el-input-number
+                                v-model="row.req"
+                                :min="0"
+                                placeholder="不限"
+                                style="width: 100%"
+                              />
+                            </el-form-item>
+                          </el-col>
+                          <el-col :span="8">
+                            <el-form-item label="展现次数">
+                              <el-input-number
+                                v-model="row.ims"
+                                :min="0"
+                                placeholder="不限"
+                                style="width: 100%"
+                              />
+                            </el-form-item>
+                          </el-col>
+                          <el-col :span="8">
+                            <el-form-item label="点击次数">
+                              <el-input-number
+                                v-model="row.clk"
+                                :min="0"
+                                placeholder="不限"
+                                style="width: 100%"
+                              />
+                            </el-form-item>
+                          </el-col>
+                        </el-row>
+
+                        <el-row :gutter="20">
+                          <el-col :span="8">
+                            <el-form-item label="投放时段">
+                            <el-select
+                              v-model="row.launchTime"
+                              placeholder="请选择投放时段"
+                              clearable
+                              style="width: 100%"
+                            >
+                              <el-option label="全时段" :value="1" />
+                              <el-option label="自定义" :value="2" />
+                            </el-select>
+                          </el-form-item>
+                          </el-col>
+                          <el-col :span="8">
+                            <el-form-item label="投放策略">
+                              <el-select
+                                v-model="row.launchStrategy"
+                                placeholder="请选择投放策略"
+                                clearable
+                                style="width: 100%"
+                              >
+                                <el-option
+                                  v-for="item in launchStrategyOptions"
+                                  :key="item.value"
+                                  :label="item.label"
+                                  :value="item.value"
+                                />
+                              </el-select>
+                            </el-form-item>
+                          </el-col>
+                          <el-col :span="8">
+                            <el-form-item label="人群定向">
+                              <el-select
+                                v-model="row.crowdDirection"
+                                placeholder="请选择人群定向"
+                                clearable
+                                style="width: 100%"
+                              >
+                                <el-option
+                                  v-for="item in directionTypeOptions"
+                                  :key="item.value"
+                                  :label="item.label"
+                                  :value="item.value"
+                                />
+                              </el-select>
+                            </el-form-item>
+                          </el-col>
+                        </el-row>
+
+                        <el-row :gutter="20">
+                          <el-col :span="8">
+                            <el-form-item label="地域定向">
+                              <el-select
+                                v-model="row.regionDirection"
+                                placeholder="请选择地域定向"
+                                clearable
+                                style="width: 100%"
+                              >
+                                <el-option
+                                  v-for="item in directionTypeOptions"
+                                  :key="item.value"
+                                  :label="item.label"
+                                  :value="item.value"
+                                />
+                              </el-select>
+                            </el-form-item>
+                          </el-col>
+                          <el-col :span="8">
+                            <el-form-item label="品牌定向">
+                              <el-select
+                                v-model="row.brandDirection"
+                                placeholder="请选择品牌定向"
+                                clearable
+                                style="width: 100%"
+                              >
+                                <el-option
+                                  v-for="item in directionTypeOptions"
+                                  :key="item.value"
+                                  :label="item.label"
+                                  :value="item.value"
+                                />
+                              </el-select>
+                            </el-form-item>
+                          </el-col>
+                          <el-col :span="8">
+                            <el-form-item label="操作">
+                              <el-button
+                                type="primary"
+                                :loading="row.saving"
+                                @click="saveDspLaunchConfig(row)"
+                              >
+                                保存配置
+                              </el-button>
+                            </el-form-item>
+                          </el-col>
+                        </el-row>
+
+                        <el-row :gutter="20">
+                          <el-col :span="24">
+                            <el-form-item label="备注">
+                              <el-input
+                                v-model="row.remark"
+                                type="textarea"
+                                :rows="2"
+                                placeholder="备注信息"
+                              />
+                            </el-form-item>
+                          </el-col>
+                        </el-row>
+                      </el-form>
                     </div>
                   </template>
                 </el-table-column>
@@ -615,6 +764,7 @@ import {
   getSsp_ad_slotList,
   findDSPInfo
 } from '@/api/ssp/sspAdSlot'
+import { updateDspLaunch } from '@/api/dsp/dspLaunch'
 
 import { ref, reactive, onMounted, watch, computed, nextTick } from 'vue'
 import { getDictFunc, formatDate, filterDict } from '@/utils/format'
@@ -1197,7 +1347,11 @@ const loadDSPInfo = async (slotId) => {
   try {
     const res = await findDSPInfo({ id: slotId })
     if (res.code === 0) {
-      dspInfoList.value = res.data || []
+      // 为每条数据添加 saving 状态，用于保存按钮的 loading 状态
+      dspInfoList.value = (res.data || []).map(item => ({
+        ...item,
+        saving: false
+      }))
     } else {
       dspInfoList.value = []
       ElMessage.warning('加载预算位信息失败：' + res.msg)
@@ -1207,6 +1361,78 @@ const loadDSPInfo = async (slotId) => {
     ElMessage.error('加载预算位信息失败：' + error.message)
   } finally {
     dspInfoLoading.value = false
+  }
+}
+
+// 保存预算位配置
+const saveDspLaunchConfig = async (row) => {
+  if (!row.id) {
+    ElMessage.error('缺少预算位配置ID，无法保存')
+    return
+  }
+
+  // 设置保存状态
+  row.saving = true
+
+  try {
+    // 构建保存数据
+    const saveData = {
+      id: row.id,
+      dspSlotId: row.dspSlotId,
+      sspSlotId: row.sspSlotId,
+      trafficWeight: Number(row.trafficWeight || 0),
+      floorPrice: row.floorPrice || 0
+    }
+
+    // 添加可选字段（只添加有值的字段）
+    if (row.launchStrategy !== undefined && row.launchStrategy !== null) {
+      saveData.launchStrategy = Number(row.launchStrategy)
+    }
+    if (row.ipLimit !== undefined && row.ipLimit !== null) {
+      saveData.ipLimit = row.ipLimit
+    }
+    if (row.logCaptureAt !== undefined && row.logCaptureAt !== null) {
+      saveData.logCaptureAt = row.logCaptureAt
+    }
+    if (row.trackSchwarz) {
+      saveData.trackSchwarz = row.trackSchwarz
+    }
+    if (row.req !== undefined && row.req !== null) {
+      saveData.req = row.req
+    }
+    if (row.ims !== undefined && row.ims !== null) {
+      saveData.ims = row.ims
+    }
+    if (row.clk !== undefined && row.clk !== null) {
+      saveData.clk = row.clk
+    }
+    if (row.launchTime) {
+      saveData.launchTime = row.launchTime
+    }
+    if (row.crowdDirection) {
+      saveData.crowdDirection = row.crowdDirection
+    }
+    if (row.regionDirection) {
+      saveData.regionDirection = row.regionDirection
+    }
+    if (row.brandDirection) {
+      saveData.brandDirection = row.brandDirection
+    }
+    if (row.remark) {
+      saveData.remark = row.remark
+    }
+
+    const res = await updateDspLaunch(saveData)
+
+    if (res.code === 0) {
+      ElMessage.success('保存成功')
+    } else {
+      ElMessage.error('保存失败：' + res.msg)
+    }
+  } catch (error) {
+    ElMessage.error('保存失败：' + error.message)
+  } finally {
+    row.saving = false
   }
 }
 
@@ -1232,6 +1458,6 @@ onMounted(() => {
 </script>
 <style>
 .table-config {
-
+  /* 表格配置样式 */
 }
 </style>
