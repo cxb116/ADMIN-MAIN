@@ -228,7 +228,8 @@
     <el-input v-model.number="formData.dsp_deal_ratio" :clearable="true" placeholder="请输入成交价系数" />
 </el-form-item>
 
-            <!-- 预算配置 -->
+            <!-- 预算配置 - 编辑模式下隐藏 -->
+            <template v-if="dialogMode !== 'edit'">
             <el-divider content-position="left">预算配置</el-divider>
             <el-alert
               :type="totalWeight === 100 ? 'success' : 'warning'"
@@ -486,6 +487,7 @@
                 </template>
               </el-table-column>
             </el-table>
+            </template>
 
             <el-form-item v-if="dialogMode !== 'config'" label="备注:" prop="remark">
     <RichEdit v-model="formData.remark" />
@@ -786,7 +788,7 @@ const drawerTitle = computed(() => {
     case 'create':
       return '新增预算位'
     case 'edit':
-      return '编辑预算位'
+      return '编辑预算位（基本信息）'
     case 'config':
       return '配置流量分流'
     default:
@@ -794,7 +796,7 @@ const drawerTitle = computed(() => {
   }
 })
 
-// 打开编辑对话框 - 可以修改预算位基本信息
+// 打开编辑对话框 - 只能修改预算位基本信息，不涉及流量配置
 const openEditDialog = async(row) => {
   dialogMode.value = 'edit'
   type.value = 'update'
@@ -810,9 +812,6 @@ const openEditDialog = async(row) => {
       ]
     }
     dialogFormVisible.value = true
-
-    // 加载预算配置数据
-    await loadLaunchData(row)
   }
 }
 
@@ -1036,8 +1035,8 @@ const enterDialog = async () => {
                 // 如果是新增，获取新创建的ID
                 const dspSlotId = isNew ? res.data.ID : formData.value.ID
 
-                // 保存预算配置
-                if (launchList.value.length > 0) {
+                // 编辑模式下不保存预算配置，只有新增模式和配置模式才保存
+                if (dialogMode.value !== 'edit' && launchList.value.length > 0) {
                   const saveData = launchList.value.map(item => {
                     const saveItem = {
                       dspSlotId: dspSlotId,
