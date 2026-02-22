@@ -502,14 +502,10 @@
                             </el-form-item>
                           </el-col>
                           <el-col :span="8">
-                            <el-form-item label="操作">
-                              <el-button
-                                type="primary"
-                                :loading="row.saving"
-                                @click="saveDspLaunchConfig(row)"
-                              >
-                                保存配置
-                              </el-button>
+                            <el-form-item label="保存提示">
+                              <el-text type="info" size="small">
+                                点击表格右侧"保存"按钮保存配置
+                              </el-text>
                             </el-form-item>
                           </el-col>
                         </el-row>
@@ -546,6 +542,19 @@
                 <el-table-column label="底价" prop="floorPrice" width="120">
                   <template #default="scope">
                     {{ scope.row.dspPayType === '2' && scope.row.floorPrice ? scope.row.floorPrice : '-' }}
+                  </template>
+                </el-table-column>
+
+                <el-table-column label="操作" width="100" align="center" fixed="right">
+                  <template #default="scope">
+                    <el-button
+                      type="primary"
+                      size="small"
+                      :loading="scope.row.saving"
+                      @click="saveDspLaunchConfig(scope.row)"
+                    >
+                      保存
+                    </el-button>
                   </template>
                 </el-table-column>
               </el-table>

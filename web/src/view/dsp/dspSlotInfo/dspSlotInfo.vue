@@ -251,7 +251,7 @@
             <el-table
               :data="launchList"
               border
-              style="width: 100%; table-layout: fixed;"
+              style="width: 100%"
               max-height="500"
               :expand-row-keys="expandedRowKeys"
               @expand-change="handleExpandChange"
@@ -430,7 +430,7 @@
 
               <el-table-column type="index" label="序号" width="60" />
 
-              <el-table-column label="预算广告位" min-width="300">
+              <el-table-column label="预算广告位" min-width="200">
                 <template #default="scope">
                   <el-select
                     v-model="scope.row.sspSlotId"
@@ -456,30 +456,30 @@
                 </template>
               </el-table-column>
 
-              <el-table-column v-if="formData.dsp_pay_type === '2'" label="底价" min-width="150">
+              <el-table-column v-if="formData.dsp_pay_type === '2'" label="底价" width="130">
                 <template #default="scope">
                   <el-input-number
                     v-model="scope.row.floorPrice"
                     :min="0"
                     placeholder="请输入底价"
-                    style="width: 120px"
+                    style="width: 100%"
                   />
                 </template>
               </el-table-column>
 
-              <el-table-column label="流量权重" min-width="200">
+              <el-table-column label="流量权重" width="130">
                 <template #default="scope">
                   <el-input-number
                     v-model="scope.row.trafficWeight"
                     :min="0"
                     :max="100"
                     :step="1"
-                    style="width: 120px"
+                    style="width: 100%"
                   />
                 </template>
               </el-table-column>
 
-              <el-table-column label="操作" width="100">
+              <el-table-column label="操作" width="80" align="center">
                 <template #default="scope">
                   <el-button type="danger" link @click="removeLaunch(scope.$index)">
                     <el-icon><Delete /></el-icon> 删除
