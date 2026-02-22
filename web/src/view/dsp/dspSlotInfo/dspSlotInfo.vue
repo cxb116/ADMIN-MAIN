@@ -124,9 +124,9 @@
 </el-table-column>
         <el-table-column align="left" label="操作" fixed="right" :min-width="appStore.operateMinWith">
             <template #default="scope">
-            <el-button  type="primary" link class="table-button" @click="getDetails(scope.row)"><el-icon style="margin-right: 5px"><InfoFilled /></el-icon>查看</el-button>
-            <el-button  type="primary" link icon="edit" class="table-button" @click="updateDspSlotInfoFunc(scope.row)">编辑</el-button>
-            <el-button   type="primary" link icon="delete" @click="deleteRow(scope.row)">删除</el-button>
+            <el-button type="primary" link class="table-button" @click="openEditDialog(scope.row)"><el-icon style="margin-right: 5px"><Edit /></el-icon>编辑</el-button>
+            <el-button type="primary" link icon="setting" class="table-button" @click="openConfigDialog(scope.row)">配置</el-button>
+            <el-button type="primary" link icon="delete" @click="deleteRow(scope.row)">删除</el-button>
             </template>
         </el-table-column>
         </el-table>
@@ -145,7 +145,7 @@
     <el-drawer destroy-on-close :size="appStore.drawerSize" v-model="dialogFormVisible" :show-close="false" :before-close="closeDialog">
        <template #header>
               <div class="flex justify-between items-center">
-                <span class="text-lg">{{type==='create'?'新增':'编辑'}}</span>
+                <span class="text-lg">{{drawerTitle}}</span>
                 <div>
                   <el-button :loading="btnLoading" type="primary" @click="enterDialog">确 定</el-button>
                   <el-button @click="closeDialog">取 消</el-button>
@@ -154,14 +154,16 @@
             </template>
 
           <el-form :model="formData" label-position="top" ref="elFormRef" :rules="rule" label-width="80px">
+            <!-- 基本信息区域 - 配置模式下禁用 -->
+            <el-divider content-position="left">基本信息 {{ dialogMode === 'config' ? '(配置模式下不可修改)' : '' }}</el-divider>
             <el-form-item label="预算位名称:" prop="name">
-    <el-input v-model="formData.name" :clearable="true" placeholder="请输入预算位名称" />
+    <el-input v-model="formData.name" :clearable="true" placeholder="请输入预算位名称" :disabled="dialogMode === 'config'" />
 </el-form-item>
             <el-form-item label="预算方广告位:" prop="dsp_slot_code">
-    <el-input v-model="formData.dsp_slot_code" :clearable="true" placeholder="请输入预算方广告位" />
+    <el-input v-model="formData.dsp_slot_code" :clearable="true" placeholder="请输入预算方广告位" :disabled="dialogMode === 'config'" />
 </el-form-item>
             <el-form-item label="操作系统类型:" prop="os_type">
-    <el-select v-model="formData.os_type" placeholder="请选择操作系统类型" :clearable="true" :disabled="type === 'update'" style="width: 100%">
+    <el-select v-model="formData.os_type" placeholder="请选择操作系统类型" :clearable="true" :disabled="type === 'update' || dialogMode === 'config'" style="width: 100%">
       <el-option
         v-for="item in osTypeOptions"
         :key="item.value"
@@ -171,7 +173,7 @@
     </el-select>
 </el-form-item>
             <el-form-item label="广告类型:" prop="scene_id">
-    <el-select v-model="formData.scene_id" placeholder="请选择广告类型" :clearable="true" :disabled="type === 'update'" style="width: 100%">
+    <el-select v-model="formData.scene_id" placeholder="请选择广告类型" :clearable="true" :disabled="type === 'update' || dialogMode === 'config'" style="width: 100%">
       <el-option
         v-for="item in sceneOptions.list"
         :key="item.value"
@@ -192,37 +194,37 @@
         children: 'children'
       }"
       placeholder="请选择公司产品"
-      :disabled="type === 'update'"
+      :disabled="type === 'update' || dialogMode === 'config'"
       style="width: 100%"
       clearable
       filterable
     />
 </el-form-item>
-            <el-form-item label="预算方APPKEY:" prop="dsp_app_key">
+            <el-form-item v-if="dialogMode !== 'config'" label="预算方APPKEY:" prop="dsp_app_key">
     <el-input v-model="formData.dsp_app_key" :clearable="true" placeholder="请输入预算方APPKEY" />
 </el-form-item>
-            <el-form-item label="预算方APPSECRET:" prop="dsp_app_secret">
+            <el-form-item v-if="dialogMode !== 'config'" label="预算方APPSECRET:" prop="dsp_app_secret">
     <el-input v-model="formData.dsp_app_secret" :clearable="true" placeholder="请输入预算方APPSECRET" />
 </el-form-item>
-            <el-form-item label="预算APPID:" prop="dsp_app_id">
+            <el-form-item v-if="dialogMode !== 'config'" label="预算APPID:" prop="dsp_app_id">
     <el-input v-model="formData.dsp_app_id" :clearable="true" placeholder="请输入预算APPID" />
 </el-form-item>
-            <el-form-item label="预算方应用包名:" prop="dsp_app_pkg">
+            <el-form-item v-if="dialogMode !== 'config'" label="预算方应用包名:" prop="dsp_app_pkg">
     <el-input v-model="formData.dsp_app_pkg" :clearable="true" placeholder="请输入预算方应用包名" />
 </el-form-item>
-            <el-form-item label="应用版本号:" prop="dsp_app_ver">
+            <el-form-item v-if="dialogMode !== 'config'" label="应用版本号:" prop="dsp_app_ver">
     <el-input v-model="formData.dsp_app_ver" :clearable="true" placeholder="请输入应用版本号" />
 </el-form-item>
-            <el-form-item label="应用商店版本号:" prop="dsp_app_store_ver">
+            <el-form-item v-if="dialogMode !== 'config'" label="应用商店版本号:" prop="dsp_app_store_ver">
     <el-input v-model="formData.dsp_app_store_ver" :clearable="true" placeholder="请输入应用商店版本号" />
 </el-form-item>
-            <el-form-item label="应用商店地址:" prop="dsp_app_store_link">
+            <el-form-item v-if="dialogMode !== 'config'" label="应用商店地址:" prop="dsp_app_store_link">
     <el-input v-model="formData.dsp_app_store_link" :clearable="true" placeholder="请输入应用商店地址" />
 </el-form-item>
             <el-form-item label="结算方式:" prop="dsp_pay_type">
-    <el-tree-select v-model="formData.dsp_pay_type" placeholder="请选择结算方式" :data="pay_typeOptions" style="width:100%" filterable :clearable="true" check-strictly></el-tree-select>
+    <el-tree-select v-model="formData.dsp_pay_type" placeholder="请选择结算方式" :data="pay_typeOptions" style="width:100%" filterable :clearable="true" check-strictly :disabled="dialogMode === 'config'"></el-tree-select>
 </el-form-item>
-            <el-form-item label="成交价系数:" prop="dsp_deal_ratio">
+            <el-form-item v-if="dialogMode !== 'config'" label="成交价系数:" prop="dsp_deal_ratio">
     <el-input v-model.number="formData.dsp_deal_ratio" :clearable="true" placeholder="请输入成交价系数" />
 </el-form-item>
 
@@ -458,8 +460,6 @@
                   <el-input-number
                     v-model="scope.row.floorPrice"
                     :min="0"
-                    :step="0.01"
-                    :precision="2"
                     placeholder="请输入底价"
                     style="width: 120px"
                   />
@@ -487,64 +487,11 @@
               </el-table-column>
             </el-table>
 
-            <el-form-item label="备注:" prop="remark">
-    <RichEdit v-model="formData.remark"/>
+            <el-form-item v-if="dialogMode !== 'config'" label="备注:" prop="remark">
+    <RichEdit v-model="formData.remark" />
 </el-form-item>
           </el-form>
     </el-drawer>
-
-    <el-drawer destroy-on-close :size="appStore.drawerSize" v-model="detailShow" :show-close="true" :before-close="closeDetailShow" title="查看">
-            <el-descriptions :column="1" border>
-                    <el-descriptions-item label="预算位名称">
-    {{ detailForm.name }}
-</el-descriptions-item>
-                    <el-descriptions-item label="广告类型">
-    {{ sceneMap.value[String(detailForm.scene_id)] || detailForm.scene_id }}
-</el-descriptions-item>
-                    <el-descriptions-item label="预算方广告位">
-    {{ detailForm.dsp_slot_code }}
-</el-descriptions-item>
-                    <el-descriptions-item label="操作系统类型">
-    {{ filterDict(detailForm.os_type, osTypeOptions) }}
-</el-descriptions-item>
-                    <el-descriptions-item label="预算方APPKEY">
-    {{ detailForm.dsp_app_key }}
-</el-descriptions-item>
-                    <el-descriptions-item label="预算方APPSECRET">
-    {{ detailForm.dsp_app_secret }}
-</el-descriptions-item>
-                    <el-descriptions-item label="预算APPID">
-    {{ detailForm.dsp_app_id }}
-</el-descriptions-item>
-                    <el-descriptions-item label="预算方应用包名">
-    {{ detailForm.dsp_app_pkg }}
-</el-descriptions-item>
-                    <el-descriptions-item label="应用版本号">
-    {{ detailForm.dsp_app_ver }}
-</el-descriptions-item>
-                    <el-descriptions-item label="应用商店版本号">
-    {{ detailForm.dsp_app_store_ver }}
-</el-descriptions-item>
-                    <el-descriptions-item label="应用商店地址">
-    {{ detailForm.dsp_app_store_link }}
-</el-descriptions-item>
-                    <el-descriptions-item label="结算方式">
-    {{ detailForm.dsp_pay_type }}
-</el-descriptions-item>
-                    <el-descriptions-item label="成交价系数">
-    {{ detailForm.dsp_deal_ratio }}
-</el-descriptions-item>
-                    <el-descriptions-item label="公司id">
-    {{ detailForm.dsp_company_id }}
-</el-descriptions-item>
-                    <el-descriptions-item label="产品id">
-    {{ detailForm.dsp_product_id }}
-</el-descriptions-item>
-                    <el-descriptions-item label="备注">
-    <RichView v-model="detailForm.remark" />
-</el-descriptions-item>
-            </el-descriptions>
-        </el-drawer>
 
   </div>
 </template>
@@ -566,12 +513,11 @@ import { batchSaveDspLaunch, getDspLaunchByDspSlotId } from '@/api/dsp/dspLaunch
 import { getSsp_ad_slotList } from '@/api/ssp/sspAdSlot'
 // 富文本组件
 import RichEdit from '@/components/richtext/rich-edit.vue'
-import RichView from '@/components/richtext/rich-view.vue'
 
 // 全量引入格式化工具 请按需保留
-import { getDictFunc, formatDate, formatBoolean, filterDict ,filterDataSource, returnArrImg, onDownloadFile } from '@/utils/format'
+import { getDictFunc, formatDate, filterDict } from '@/utils/format'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ref, reactive, watch, computed } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useAppStore } from "@/pinia"
 
 
@@ -633,33 +579,6 @@ const sceneMap = computed(() => {
   if (sceneOptions.value && sceneOptions.value.list) {
     sceneOptions.value.list.forEach(scene => {
       map[String(scene.value)] = scene.label
-    })
-  }
-  return map
-})
-
-// 创建公司ID到名称的映射
-const companyMap = computed(() => {
-  const map = {}
-  if (cascaderOptions.value) {
-    cascaderOptions.value.forEach(company => {
-      map[String(company.value)] = company.label
-    })
-  }
-  return map
-})
-
-// 创建产品ID到名称的映射（需要公司ID）
-const productMap = computed(() => {
-  const map = {}
-  if (cascaderOptions.value) {
-    cascaderOptions.value.forEach(company => {
-      if (company.children) {
-        company.children.forEach(product => {
-          // 使用 companyId_productId 作为复合键
-          map[`${company.value}_${product.value}`] = product.label
-        })
-      }
     })
   }
   return map
@@ -858,63 +777,109 @@ const onDelete = async() => {
 // 行为控制标记（弹窗内部需要增还是改）
 const type = ref('')
 
-// 更新行
-const updateDspSlotInfoFunc = async(row) => {
-    const res = await findDspSlotInfo({ ID: row.ID })
-    type.value = 'update'
-    if (res.code === 0) {
-        formData.value = res.data
-        // 编辑模式：将后端返回的 company_id 和 product_id 转换为级联选择器格式
-        if (res.data.dsp_company_id && res.data.dsp_product_id) {
-          formData.value.cascaderValue = [
-            String(res.data.dsp_company_id),
-            String(res.data.dsp_product_id)
-          ]
-        }
-        dialogFormVisible.value = true
+// 对话框模式：'create'（新增）、'edit'（编辑）、'config'（配置）
+const dialogMode = ref('create')
 
-        // 加载预算配置数据
-        currentDspSlot.value = row
-        launchList.value = []
-        expandedRowKeys.value = []
+// 对话框标题
+const drawerTitle = computed(() => {
+  switch (dialogMode.value) {
+    case 'create':
+      return '新增预算位'
+    case 'edit':
+      return '编辑预算位'
+    case 'config':
+      return '配置流量分流'
+    default:
+      return '预算位'
+  }
+})
 
-        try {
-          const [launchRes, slotRes] = await Promise.all([
-            getDspLaunchByDspSlotId({ dspSlotId: row.ID }),
-            getSsp_ad_slotList({ page: 1, pageSize: 9999, enable: 1 })
-          ])
+// 打开编辑对话框 - 可以修改预算位基本信息
+const openEditDialog = async(row) => {
+  dialogMode.value = 'edit'
+  type.value = 'update'
 
-          if (launchRes.code === 0 && launchRes.data) {
-            launchList.value = launchRes.data.map(item => ({
-              id: item.id || Date.now() + Math.random(),
-              dspSlotId: row.ID,
-              sspSlotId: item.sspSlotId,
-              trafficWeight: item.trafficWeight ? Number(item.trafficWeight) : 0,
-              floorPrice: item.floorPrice ? item.floorPrice / 100 : 0,  // 后端存储的是分，前端显示元
-              launchStrategy: item.launchStrategy ? Number(item.launchStrategy) : undefined,
-              ipLimit: item.ipLimit || undefined,
-              logCaptureAt: item.logCaptureAt || 300,
-              trackSchwarz: item.trackSchwarz || '',
-              req: item.req || undefined,
-              ims: item.ims || undefined,
-              clk: item.clk || undefined,
-              launchTime: item.launchTime || null,
-              crowdDirection: item.crowdDirection || '',
-              regionDirection: item.regionDirection || '',
-              brandDirection: item.brandDirection || '',
-              remark: item.remark || ''
-            }))
-          }
-
-          if (slotRes.code === 0 && slotRes.data.list) {
-            allSspSlots.value = slotRes.data.list
-          }
-
-          matchSspSlotInfo()
-        } catch (error) {
-          ElMessage.error('加载预算配置失败')
-        }
+  const res = await findDspSlotInfo({ ID: row.ID })
+  if (res.code === 0) {
+    formData.value = res.data
+    // 编辑模式：将后端返回的 company_id 和 product_id 转换为级联选择器格式
+    if (res.data.dsp_company_id && res.data.dsp_product_id) {
+      formData.value.cascaderValue = [
+        String(res.data.dsp_company_id),
+        String(res.data.dsp_product_id)
+      ]
     }
+    dialogFormVisible.value = true
+
+    // 加载预算配置数据
+    await loadLaunchData(row)
+  }
+}
+
+// 打开配置对话框 - 只能配置流量分流，不能修改基本信息
+const openConfigDialog = async(row) => {
+  dialogMode.value = 'config'
+  type.value = 'update'
+
+  const res = await findDspSlotInfo({ ID: row.ID })
+  if (res.code === 0) {
+    formData.value = res.data
+    // 配置模式：将后端返回的 company_id 和 product_id 转换为级联选择器格式
+    if (res.data.dsp_company_id && res.data.dsp_product_id) {
+      formData.value.cascaderValue = [
+        String(res.data.dsp_company_id),
+        String(res.data.dsp_product_id)
+      ]
+    }
+    dialogFormVisible.value = true
+
+    // 加载预算配置数据
+    await loadLaunchData(row)
+  }
+}
+
+// 加载预算配置数据（公共方法）
+const loadLaunchData = async(row) => {
+  currentDspSlot.value = row
+  launchList.value = []
+  expandedRowKeys.value = []
+
+  try {
+    const [launchRes, slotRes] = await Promise.all([
+      getDspLaunchByDspSlotId({ dspSlotId: row.ID }),
+      getSsp_ad_slotList({ page: 1, pageSize: 9999, enable: 1 })
+    ])
+
+    if (launchRes.code === 0 && launchRes.data) {
+      launchList.value = launchRes.data.map(item => ({
+        id: item.id || Date.now() + Math.random(),
+        dspSlotId: row.ID,
+        sspSlotId: item.sspSlotId,
+        trafficWeight: item.trafficWeight ? Number(item.trafficWeight) : 0,
+        floorPrice: item.floorPrice ? item.floorPrice: 0,  // 后端存储的是分，前端显示元
+        launchStrategy: item.launchStrategy ? Number(item.launchStrategy) : undefined,
+        ipLimit: item.ipLimit || undefined,
+        logCaptureAt: item.logCaptureAt || 300,
+        trackSchwarz: item.trackSchwarz || '',
+        req: item.req || undefined,
+        ims: item.ims || undefined,
+        clk: item.clk || undefined,
+        launchTime: item.launchTime || null,
+        crowdDirection: item.crowdDirection || '',
+        regionDirection: item.regionDirection || '',
+        brandDirection: item.brandDirection || '',
+        remark: item.remark || ''
+      }))
+    }
+
+    if (slotRes.code === 0 && slotRes.data.list) {
+      allSspSlots.value = slotRes.data.list
+    }
+
+    matchSspSlotInfo()
+  } catch (error) {
+    ElMessage.error('加载预算配置失败')
+  }
 }
 
 
@@ -938,6 +903,7 @@ const dialogFormVisible = ref(false)
 
 // 打开弹窗
 const openDialog = async () => {
+    dialogMode.value = 'create'
     type.value = 'create'
     dialogFormVisible.value = true
 
@@ -959,6 +925,7 @@ const openDialog = async () => {
 // 关闭弹窗
 const closeDialog = () => {
     dialogFormVisible.value = false
+    dialogMode.value = 'create'
     formData.value = {
         name: '',
         scene_id: undefined,
@@ -985,6 +952,60 @@ const enterDialog = async () => {
      elFormRef.value?.validate( async (valid) => {
              if (!valid) return btnLoading.value = false
 
+             // 配置模式下，只保存预算配置，不保存基本信息
+             if (dialogMode.value === 'config') {
+               // 直接保存预算配置
+               if (launchList.value.length > 0) {
+                 const saveData = launchList.value.map(item => {
+                   const saveItem = {
+                     dspSlotId: formData.value.ID,
+                     sspSlotId: item.sspSlotId,
+                     trafficWeight: Number(item.trafficWeight),
+                     floorPrice: Math.round(item.floorPrice * 100)  // 前端是元，后端存储分
+                   }
+
+                   // 添加可选字段（只添加有值的字段）
+                   if (item.launchStrategy) saveItem.launchStrategy = Number(item.launchStrategy)
+                   if (item.ipLimit !== undefined && item.ipLimit !== null) saveItem.ipLimit = item.ipLimit
+                   if (item.logCaptureAt !== undefined && item.logCaptureAt !== null) saveItem.logCaptureAt = item.logCaptureAt
+                   if (item.trackSchwarz) saveItem.trackSchwarz = item.trackSchwarz
+                   if (item.req !== undefined && item.req !== null) saveItem.req = item.req
+                   if (item.ims !== undefined && item.ims !== null) saveItem.ims = item.ims
+                   if (item.clk !== undefined && item.clk !== null) saveItem.clk = item.clk
+                   if (item.launchTime) saveItem.launchTime = item.launchTime
+                   if (item.crowdDirection) saveItem.crowdDirection = item.crowdDirection
+                   if (item.regionDirection) saveItem.regionDirection = item.regionDirection
+                   if (item.brandDirection) saveItem.brandDirection = item.brandDirection
+                   if (item.remark) saveItem.remark = item.remark
+
+                   return saveItem
+                 })
+
+                 try {
+                   const launchRes = await batchSaveDspLaunch(saveData)
+                   if (launchRes.code !== 0) {
+                     ElMessage.error('预算配置保存失败：' + launchRes.msg)
+                     btnLoading.value = false
+                     return
+                   }
+                 } catch (error) {
+                   ElMessage.error('预算配置保存失败：' + error.message)
+                   btnLoading.value = false
+                   return
+                 }
+               }
+
+               btnLoading.value = false
+               ElMessage({
+                 type: 'success',
+                 message: '配置保存成功'
+               })
+               closeDialog()
+               getTableData()
+               return
+             }
+
+             // 新增和编辑模式：保存基本信息
              // 将级联选择器的值转换为后端需要的格式
              if (formData.value.cascaderValue && formData.value.cascaderValue.length === 2) {
                formData.value.dsp_company_id = Number(formData.value.cascaderValue[0])
@@ -1059,7 +1080,7 @@ const enterDialog = async () => {
                 btnLoading.value = false
                 ElMessage({
                   type: 'success',
-                  message: '创建/更改成功'
+                  message: isNew ? '创建成功' : '更新成功'
                 })
                 closeDialog()
                 getTableData()
@@ -1067,48 +1088,6 @@ const enterDialog = async () => {
                 btnLoading.value = false
               }
       })
-}
-
-const detailForm = ref({})
-
-// 查看详情控制标记
-const detailShow = ref(false)
-
-
-// 打开详情弹窗
-const openDetailShow = () => {
-  detailShow.value = true
-}
-
-
-// 打开详情
-const getDetails = async (row) => {
-  // 打开弹窗
-  const res = await findDspSlotInfo({ ID: row.ID })
-  if (res.code === 0) {
-    detailForm.value = res.data
-    openDetailShow()
-  }
-}
-
-
-// 关闭详情弹窗
-const closeDetailShow = () => {
-  detailShow.value = false
-  detailForm.value = {}
-}
-
-// 获取公司名称
-const getCompanyName = (companyId) => {
-  if (!companyId) return ''
-  return companyMap.value[String(companyId)] || companyId
-}
-
-// 获取产品名称
-const getProductName = (companyId, productId) => {
-  if (!companyId || !productId) return productId || ''
-  const key = `${String(companyId)}_${String(productId)}`
-  return productMap.value[key] || productId
 }
 
 // ========== 预算配置功能 ==========
