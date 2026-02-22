@@ -108,3 +108,18 @@ export const getSsp_ad_slotPublic = () => {
     method: 'get',
   })
 }
+// FindDSPInfo 根据 SSP 表的相关信息查询 DSP 信息
+// @Tags Ssp_ad_slot
+// @Summary 根据 SSP 表的相关信息查询 DSP 信息
+// @Accept application/json
+// @Produce application/json
+// @Param data query object true "查询参数"
+// @Success 200 {object} response.Response{data=object,msg=string} "成功"
+// @Router /adSlot/findDSPInfo [GET]
+export const findDSPInfo = (params) => {
+  return service({
+    url: '/adSlot/findDSPInfo',
+    method: 'GET',
+    params
+  })
+}

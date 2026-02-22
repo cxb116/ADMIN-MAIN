@@ -436,7 +436,7 @@
                     style="width: 100%"
                   >
                     <el-option
-                      v-for="slot in allSspSlots"
+                      v-for="slot in filterByFormData(allSspSlots,formData)"
                       :key="slot.ID"
                       :label="`${slot.app_name} - ${slot.name}`"
                       :value="slot.ID"
@@ -613,6 +613,16 @@ const formData = ref({
             cascaderValue: [],
             remark: '',
         })
+
+const filterByFormData = (allSspSlots,formData) => {
+  console.log(`当前需要的类型: scene_id: ${formData.scene_id} os_type: ${formData.os_type}`);
+  console.dir(allSspSlots.map(x=>({os_type:x.app_os_type,scene_id:x.scene_id})))
+    let filterd =  allSspSlots.filter(slot => {
+      return slot.app_os_type == formData.os_type && slot.scene_id == formData.scene_id
+    })
+    console.dir(filterd)
+    return filterd;
+}
 
 // 级联选择器选项数据
 const cascaderOptions = ref([])

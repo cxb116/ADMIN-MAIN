@@ -2,7 +2,9 @@ package ssp
 
 import (
 	"context"
+
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/dsp"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/ssp"
 	sspReq "github.com/flipped-aurora/gin-vue-admin/server/model/ssp/request"
 )
@@ -95,4 +97,27 @@ func (adSlotService *Ssp_ad_slotService) GetSsp_ad_slotInfoList(ctx context.Cont
 func (adSlotService *Ssp_ad_slotService) GetSsp_ad_slotPublic(ctx context.Context) {
 	// 此方法为获取数据源定义的数据
 	// 请自行实现
+}
+
+// DspLaunchInfo DSP 投放信息（包含结算方式）
+type DspLaunchInfo struct {
+	dsp.DspLaunch
+	DspPayType *string `json:"dspPayType"`
+	Name       *string `json:"name"`
+}
+
+// FindDSPInfo 根据 SSP 表的相关信息查询 DSP 信息
+// Author [yourname](https://github.com/yourname)
+func (adSlotService *Ssp_ad_slotService) FindDSPInfo(ctx context.Context, id string) (list []DspLaunchInfo, err error) {
+	// 查询 SQL: select dl.*, dsi.dsp_pay_type from dsp_launch dl
+	// join ssp_ad_slot sas on dl.ssp_slot_id = sas.id
+	// join dsp_slot_info dsi on dl.dsp_slot_id = dsi.id
+	// where sas.id = ?
+	err = global.GVA_DB.Table("dsp_launch as dl").
+		Select("dl.*, dsi.dsp_pay_type, dsi.name").
+		Joins("join ssp_ad_slot sas on dl.ssp_slot_id = sas.id").
+		Joins("join dsp_slot_info dsi on dl.dsp_slot_id = dsi.id").
+		Where("sas.id = ?", id).
+		Find(&list).Error
+	return
 }

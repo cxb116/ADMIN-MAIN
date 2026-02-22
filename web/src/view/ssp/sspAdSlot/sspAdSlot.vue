@@ -312,6 +312,70 @@
                 </div>
               </div>
             </el-card>
+
+            <!-- 预算位列表 -->
+            <el-card shadow="never" style="margin-top: 20px;">
+              <template #header>
+                <span style="font-weight: 600;">预算位列表</span>
+              </template>
+
+              <div v-if="dspInfoLoading" class="loading-state">
+                <el-skeleton :rows="5" animated />
+              </div>
+
+              <div v-else-if="dspInfoList.length === 0" class="empty-state">
+                <el-empty description="暂无预算位信息" />
+              </div>
+
+              <el-table
+                v-else
+                :data="dspInfoList"
+                border
+                style="width: 100%;"
+              >
+                <el-table-column label="序号" width="60" align="center">
+                  <template #default="scope">{{ scope.$index + 1 }}</template>
+                </el-table-column>
+
+                <el-table-column label="投放名称" prop="name" min-width="150" />
+
+                <el-table-column label="结算方式" prop="dspPayType" width="120">
+                  <template #default="scope">
+                    {{ filterDict(scope.row.dspPayType, pay_typeOptions) }}
+                  </template>
+                </el-table-column>
+
+                <el-table-column label="底价" prop="floorPrice" width="100">
+                  <template #default="scope">
+                    {{ scope.row.dspPayType === '2' && scope.row.floorPrice ? (scope.row.floorPrice / 100).toFixed(2) : '-' }}
+                  </template>
+                </el-table-column>
+
+                <el-table-column label="投放策略" prop="launchStrategy" width="120">
+                  <template #default="scope">
+                    {{ filterDict(scope.row.launchStrategy, launchStrategyOptions) }}
+                  </template>
+                </el-table-column>
+
+                <el-table-column label="人群定向" prop="crowdDirection" width="120">
+                  <template #default="scope">
+                    {{ filterDict(scope.row.crowdDirection, directionTypeOptions) }}
+                  </template>
+                </el-table-column>
+
+                <el-table-column label="地域定向" prop="regionDirection" width="120">
+                  <template #default="scope">
+                    {{ filterDict(scope.row.regionDirection, directionTypeOptions) }}
+                  </template>
+                </el-table-column>
+
+                <el-table-column label="品牌定向" prop="brandDirection" width="120">
+                  <template #default="scope">
+                    {{ filterDict(scope.row.brandDirection, directionTypeOptions) }}
+                  </template>
+                </el-table-column>
+              </el-table>
+            </el-card>
           </div>
     </el-drawer>
     <el-drawer destroy-on-close :size="appStore.drawerSize" v-model="dialogFormVisible" :show-close="false" :before-close="closeDialog">
@@ -523,7 +587,8 @@ import {
   deleteSsp_ad_slot,
   updateSsp_ad_slot,
   findSsp_ad_slot,
-  getSsp_ad_slotList
+  getSsp_ad_slotList,
+  findDSPInfo
 } from '@/api/ssp/sspAdSlot'
 
 import { ref, reactive, onMounted, watch, computed, nextTick } from 'vue'
@@ -574,9 +639,15 @@ const currentSlotInfo = ref({
 const flowSlots = ref([])
 const allSlotOptions = ref([])
 
+// =================== 预算位列表 ===================
+const dspInfoList = ref([])
+const dspInfoLoading = ref(false)
+
 // =================== 字典 ===================
 const pay_typeOptions = ref([])
 const enableOptions = ref([])
+const launchStrategyOptions = ref([])   // 投放策略选项
+const directionTypeOptions = ref([])    // 定向类型选项（人群、地域、品牌）
 
 // =================== 下拉数据源（新增） ===================
 const mediaOptions = ref([])
@@ -903,6 +974,9 @@ const updateSsp_ad_slotConfig = async (row) => {
       flowSlots.value = []
     }
 
+    // 加载预算位列表
+    await loadDSPInfo(res.data.ID)
+
     dialogFormVisibleConfig.value = true
   }
 }
@@ -911,6 +985,7 @@ const updateSsp_ad_slotConfig = async (row) => {
 const closeConfigDialog = () => {
   dialogFormVisibleConfig.value = false
   flowSlots.value = []
+  dspInfoList.value = []
   currentSlotInfo.value = {
     ID: null,
     name: '',
@@ -1085,10 +1160,40 @@ const saveConfig = async () => {
   }
 }
 
+// =================== 预算位加载 ===================
+// 加载预算位列表
+const loadDSPInfo = async (slotId) => {
+  if (!slotId) {
+    dspInfoList.value = []
+    return
+  }
+
+  dspInfoLoading.value = true
+  try {
+    const res = await findDSPInfo({ id: slotId })
+    if (res.code === 0) {
+      dspInfoList.value = res.data || []
+    } else {
+      dspInfoList.value = []
+      ElMessage.warning('加载预算位信息失败：' + res.msg)
+    }
+  } catch (error) {
+    dspInfoList.value = []
+    ElMessage.error('加载预算位信息失败：' + error.message)
+  } finally {
+    dspInfoLoading.value = false
+  }
+}
+
 // =================== 初始化 ===================
 const setOptions = async () => {
   pay_typeOptions.value = await getDictFunc('pay_type')
   enableOptions.value = await getDictFunc('enable')
+
+  // 加载投放策略数据字典
+  launchStrategyOptions.value = (await getDictFunc('launch_strategy')).map(x => ({ ...x, value: +x.value }))
+  // 加载定向类型数据字典（人群、地域、品牌定向共享）
+  directionTypeOptions.value = (await getDictFunc('direction_type')).map(x => ({ ...x, value: +x.value }))
 }
 
 onMounted(() => {

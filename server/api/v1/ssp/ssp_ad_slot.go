@@ -206,3 +206,32 @@ func (adSlotApi *Ssp_ad_slotApi) GetSsp_ad_slotPublic(c *gin.Context) {
        "info": "不需要鉴权的媒体广告位接口信息",
     }, "获取成功", c)
 }
+// FindDSPInfo 根据 SSP 表的相关信息查询 DSP 信息
+// @Tags Ssp_ad_slot
+// @Summary 根据 SSP 表的相关信息查询 DSP 信息
+// @Accept application/json
+// @Produce application/json
+// @Param id query string true "SSP 广告位 ID"
+// @Success 200 {object} response.Response{data=[]ssp.DspLaunchInfo,msg=string} "成功"
+// @Router /adSlot/findDSPInfo [GET]
+func (adSlotApi *Ssp_ad_slotApi)FindDSPInfo(c *gin.Context) {
+    // 创建业务用Context
+    ctx := c.Request.Context()
+
+    // 获取 id 参数
+    id := c.Query("id")
+    if id == "" {
+        response.FailWithMessage("id 参数不能为空", c)
+        return
+    }
+
+    list, err := adSlotService.FindDSPInfo(ctx, id)
+    if err != nil {
+        global.GVA_LOG.Error("查询 DSP 信息失败!", zap.Error(err))
+        response.FailWithMessage("查询失败:" + err.Error(), c)
+        return
+    }
+    response.OkWithData(list, c)
+}
+
+
