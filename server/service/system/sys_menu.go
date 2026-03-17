@@ -136,7 +136,7 @@ func (menuService *MenuService) getBaseChildrenList(menu *system.SysBaseMenu, tr
 func (menuService *MenuService) AddBaseMenu(menu system.SysBaseMenu) error {
 	return global.GVA_DB.Transaction(func(tx *gorm.DB) error {
 		// 检查name是否重复
-		if !errors.Is(tx.Where("name = ?", menu.Name).First(&system.SysBaseMenu{}).Error, gorm.ErrRecordNotFound) {
+		if !errors.Is(tx.Debug().Where("name = ?", menu.Name).First(&system.SysBaseMenu{}).Error, gorm.ErrRecordNotFound) {
 			return errors.New("存在重复name，请修改name")
 		}
 

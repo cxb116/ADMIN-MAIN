@@ -88,7 +88,7 @@ func (baseMenuService *BaseMenuService) UpdateBaseMenu(menu system.SysBaseMenu) 
 	err = global.GVA_DB.Transaction(func(tx *gorm.DB) error {
 		tx.Where("id = ?", menu.ID).Find(&oldMenu)
 		if oldMenu.Name != menu.Name {
-			if !errors.Is(tx.Where("id <> ? AND name = ?", menu.ID, menu.Name).First(&system.SysBaseMenu{}).Error, gorm.ErrRecordNotFound) {
+			if !errors.Is(tx.Debug().Where("id <> ? AND name = ?", menu.ID, menu.Name).First(&system.SysBaseMenu{}).Error, gorm.ErrRecordNotFound) {
 				global.GVA_LOG.Debug("存在相同name修改失败")
 				return errors.New("存在相同name修改失败")
 			}
